@@ -63,4 +63,10 @@ struct ordenServicio {
     char descripcionFalla[200];
     int kmIngreso;
     float manoObra;
+
+// Arreglo dinamico propio de cada orden de servicio
+DetalleOrden* detalles;
+int numDetalles;
+int capacidadDetalles;
 };
+
