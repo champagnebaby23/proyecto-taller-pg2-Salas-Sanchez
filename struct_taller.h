@@ -51,3 +51,16 @@ struct detalleOrden {
     int cantidad;
     float precioUnitario;
 };
+
+// Estructura ordenServicio
+struct ordenServicio {
+    int id;
+    int idVehiculo;
+    int idMecanico;
+    char fechaApertura[11];
+    char fechaCierre[11];
+    char estado[12];
+    char descripcionFalla[200];
+    int kmIngreso;
+    float manoObra;
+};
