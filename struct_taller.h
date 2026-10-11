@@ -96,3 +96,4 @@ struct sysTaller {
     int siguienteIdOrden;
 };
 
+#endif // STRUCT_TALLER_H
