@@ -65,8 +65,34 @@ struct ordenServicio {
     float manoObra;
 
 // Arreglo dinamico propio de cada orden de servicio
-DetalleOrden* detalles;
+detalleOrden* detalles;
 int numDetalles;
 int capacidadDetalles;
+};
+
+// Estructura principal del sistema
+struct sysTaller {
+    Taller taller;
+    Vehiculo*
+    vehiculos;
+    int numVehiculos;
+    int capacidadVehiculos;
+    Mecanico*
+    mecanicos;
+    int numMecanicos;
+    int capacidadMecanicos;
+    Repuesto*
+    repuestos;
+    int numRepuestos;
+    int capacidadRepuestos;
+    ordenServicio*
+    ordenes;
+    int numOrdenes;
+    int capacidadOrdenes;
+
+    int siguienteIdVehiculo;
+    int siguienteIdMecanico;
+    int siguienteIdRepuesto;
+    int siguienteIdOrden;
 };
 
