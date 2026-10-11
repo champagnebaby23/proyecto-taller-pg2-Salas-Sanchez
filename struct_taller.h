@@ -44,3 +44,10 @@ struct Repuesto {
     int stockmin;
     char fechaRegistro[11];
 };
+
+// Estructura detalleOrden
+struct detalleOrden {
+    int idRepuesto;
+    int cantidad;
+    float precioUnitario;
+};
