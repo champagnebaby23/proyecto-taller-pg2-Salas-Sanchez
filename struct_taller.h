@@ -22,3 +22,13 @@ struct Vehiculo {
     char telefonoPropietario[20];
     char fechaRegistro[11];
 };
+
+// Estructura del mecanico
+struct Mecanico {
+    int id;
+    char nombre[100];
+    char cedula[20];
+    char telefono[20];
+    char especialidad[20];
+    char fechaIngreso[11];
+};
