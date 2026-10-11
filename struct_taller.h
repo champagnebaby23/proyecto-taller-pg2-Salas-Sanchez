@@ -9,3 +9,16 @@ struct Taller {
     char telefono[20];
 };
 
+// Estructura del vehiculo
+struct Vehiculo {
+    int id;
+    char placa[10];
+    char marca[50];
+    char modelo[50];
+    int anio;
+    int km;
+    char nombrePropietario[100];
+    char cedulaPropietario[20];
+    char telefonoPropietario[20];
+    char fechaRegistro[11];
+};
