@@ -32,3 +32,15 @@ struct Mecanico {
     char especialidad[20];
     char fechaIngreso[11];
 };
+
+// Estructura del Repuesto
+struct Repuesto {
+    int id;
+    char codigo[20];
+    char nombre[100];
+    char marca[50];
+    float precio;
+    int stock;
+    int stockmin;
+    char fechaRegistro[11];
+};
