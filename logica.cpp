@@ -342,3 +342,42 @@ ordenServicio* abrirOrdenServicio(sysTaller &s, int idVehiculo, int idMecanico, 
     s.ordenes[s.numOrdenes] = nueva;
     return &s.ordenes[s.numOrdenes++];
 }
+
+bool agregarRepuestoAOrden(sysTaller &s, int idOrden, int idRepuesto, int cantidad) {
+    ordenServicio* o = buscarOrdenPorID(s, idOrden);
+    if (o == nullptr || strcmp(o->estado, "ABIERTA") != 0) return false; 
+    if (cantidad <= 0) return false;
+
+    Repuesto* r = buscarRepuestoPorID(s, idRepuesto);
+    if (r == nullptr || r->stock < cantidad) return false; 
+
+    bool encontrado = false;
+    for (int i = 0; i < o->numDetalles; i++) {
+        if (o->detalles[i].idRepuesto == idRepuesto) {
+            o->detalles[i].cantidad += cantidad;
+            encontrado = true;
+            break;
+        }
+    }
+
+    if (!encontrado) {
+        if (o->numDetalles >= o->capacidadDetalles) {
+            int nuevaCapacidad = o->capacidadDetalles * 2;
+            detalleOrden* nuevosDetalles = new detalleOrden[nuevaCapacidad];
+            for (int i = 0; i < o->numDetalles; i++) {
+                nuevosDetalles[i] = o->detalles[i];
+            }
+            delete[] o->detalles;
+            o->detalles = nuevosDetalles;
+            o->capacidadDetalles = nuevaCapacidad;
+        }
+
+        o->detalles[o->numDetalles].idRepuesto = idRepuesto;
+        o->detalles[o->numDetalles].cantidad = cantidad;
+        o->detalles[o->numDetalles].precioUnitario = r->precio;
+        o->numDetalles++;
+    }
+
+    r->stock -= cantidad;
+    return true;
+}
