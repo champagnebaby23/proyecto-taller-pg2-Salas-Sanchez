@@ -27,5 +27,14 @@ bool registrarEntradaMercancia(sysTaller &s, int idRepuesto, int cantidadAdicion
 bool cambiarPrecioRepuesto(sysTaller &s, int idRepuesto, float nuevoPrecio);
 Repuesto** listarRepuestos(sysTaller &s, int &cantidad);
 
+ordenServicio* abrirOrdenServicio(sysTaller &s, int idVehiculo, int idMecanico, const char* fechaApertura, const char* descripcionFalla, int kmIngreso);
+bool agregarRepuestoAOrden(sysTaller &s, int idOrden, int idRepuesto, int cantidad);
+bool quitarRepuestoDeOrden(sysTaller &s, int idOrden, int idRepuesto);
+bool cerrarOrdenServicio(sysTaller &s, int idOrden, const char* fechaCierre, float manoObra);
+bool anularOrdenServicio(sysTaller &s, int idOrden);
+float calcularTotalOrden(const ordenServicio &o);
+ordenServicio* buscarOrdenPorID(sysTaller &s, int id);
+ordenServicio** listarOrdenesPorEstado(sysTaller &s, const char* estado, int &cantidad);
+
 #endif
 
