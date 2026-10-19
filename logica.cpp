@@ -165,3 +165,12 @@ Repuesto* buscarRepuestoPorID(sysTaller &s, int id) {
     }
     return nullptr;
 }
+
+Repuesto* buscarRepuestoPorCodigo(sysTaller &s, const char* codigo) {
+    for (int i = 0; i < s.numRepuestos; i++) {
+        if (strcmp(s.repuestos[i].codigo, codigo) == 0) {
+            return &s.repuestos[i];
+        }
+    }
+    return nullptr;
+}
