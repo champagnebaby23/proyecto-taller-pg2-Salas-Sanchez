@@ -32,3 +32,19 @@ void inicializarSistema(sysTaller &s, const char* nombre, const char* rif, const
     s.siguienteIdRepuesto = 1;
     s.siguienteIdOrden = 1;
 }
+
+void liberarSistema(sysTaller &s) {
+
+    for (int i=0; i < s.numOrdenes; i++) {
+        delete[] s.ordenes[i].detalles;
+    }
+    delete[] s.ordenes;
+    delete[] s.vehiculos;
+    delete[] s.mecanicos;
+    delete[] s.repuestos;
+
+    s.vehiculos = nullptr;
+    s.mecanicos = nullptr;
+    s.repuestos = nullptr;
+    s.ordenes = nullptr;
+}
