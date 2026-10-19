@@ -22,7 +22,6 @@ bool contieneSubcadena(const char* texto, const char* subcadena) {
     return strstr(t, sub) != nullptr;
 }
 
-
 void inicializarSistema(sysTaller &s, const char* nombre, const char* rif, const char* dir, const char* tel) {
 
     strcpy(s.taller.nombre, nombre);
@@ -84,6 +83,25 @@ Vehiculo* buscarVehiculoPorPlaca(sysTaller &s, const char* placa) {
         }
     }
     return nullptr;
+}
+
+Vehiculo** buscarVehiculosPorPropietario(sysTaller &s, const char* subcadena, int &cantidad) {
+    cantidad = 0;
+    for (int i = 0; i < s.numVehiculos; i++) {
+        if (contieneSubcadena(s.vehiculos[i].nombrePropietario, subcadena)) {
+            cantidad++;
+        }
+    }
+    if (cantidad == 0) return nullptr;
+
+    Vehiculo** resultado = new Vehiculo*[cantidad];
+    int idx = 0;
+    for (int i = 0; i < s.numVehiculos; i++) {
+        if (contieneSubcadena(s.vehiculos[i].nombrePropietario, subcadena)) {
+            resultado[idx++] = &s.vehiculos[i];
+        }
+    }
+    return resultado;
 }
 
 Vehiculo* agregarVehiculo(sysTaller &s, Vehiculo datos) {
