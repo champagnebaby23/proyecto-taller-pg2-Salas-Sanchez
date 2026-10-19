@@ -48,3 +48,12 @@ void liberarSistema(sysTaller &s) {
     s.repuestos = nullptr;
     s.ordenes = nullptr;
 }
+
+Vehiculo* buscarVehiculoPorID(sysTaller &s, int id) {
+    for (int i=0; i < s.numVehiculos; i++) {
+        if (s.vehiculos[i].id == id) {
+            return &s.vehiculos[i];
+            }
+        }
+    return nullptr;
+    }
