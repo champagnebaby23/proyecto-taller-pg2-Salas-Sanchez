@@ -17,5 +17,12 @@ Mecanico* buscarMecanicoPorCedula(sysTaller &s, const char* cedula);
 Mecanico** listarMecanicos(sysTaller &s, int &cantidad);
 bool especialidadValida(const char* esp);
 
+Repuesto* registrarRepuesto(sysTaller &s, Repuesto datos);
+Repuesto* buscarRepuestoPorID(sysTaller &s, int id);
+Repuesto* buscarRepuestoPorCodigo(sysTaller &s, const char* codigo);
+bool registrarEntradaMercancia(sysTaller &s, int idRepuesto, int cantidadAdicional);
+bool cambiarPrecioRepuesto(sysTaller &s, int idRepuesto, float nuevoPrecio);
+Repuesto** listarRepuestos(sysTaller &s, int &cantidad);
+
 #endif
 
