@@ -113,3 +113,47 @@ Mecanico* buscarMecanicoPorID(sysTaller &s, int id) {
     }
     return nullptr;
 }
+
+Mecanico* registrarMecanico(sysTaller &s, Mecanico datos) {
+    if (buscarMecanicoPorCedula(s, datos.cedula) != nullptr) {
+        return nullptr; // Ya existe
+    }
+
+    if (!especialidadValida(datos.especialidad)) {
+        return nullptr;
+    }
+
+    if (strlen(datos.nombre) == 0 || strlen(datos.fechaIngreso) == 0) {
+        return nullptr;
+    }
+
+    if (s.numMecanicos >= s.capacidadMecanicos) {
+        int nuevaCapacidad = s.capacidadMecanicos * 2;
+        Mecanico* nuevoArreglo = new Mecanico[nuevaCapacidad];
+
+        for (int i = 0; i < s.numMecanicos; i++) {
+            nuevoArreglo[i] = s.mecanicos[i];
+        }
+
+        delete[] s.mecanicos;
+        s.mecanicos = nuevoArreglo;
+        s.capacidadMecanicos = nuevaCapacidad;
+    }
+
+    datos.id = s.siguienteIdMecanico++;
+    s.mecanicos[s.numMecanicos] = datos;
+
+    return &s.mecanicos[s.numMecanicos++];
+}
+
+Mecanico** listarMecanicos(sysTaller &s, int &cantidad) {
+    cantidad = s.numMecanicos;
+    if (cantidad == 0) return nullptr;
+
+    Mecanico** resultado = new Mecanico*[cantidad];
+    for (int i = 0; i < cantidad; i++) {
+        resultado[i] = &s.mecanicos[i];
+    }
+    return resultado;
+}
+
