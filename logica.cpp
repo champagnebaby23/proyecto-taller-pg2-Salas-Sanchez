@@ -406,3 +406,16 @@ bool quitarRepuestoDeOrden(sysTaller &s, int idOrden, int idRepuesto) {
     o->numDetalles--;
     return true;
 }
+
+bool cerrarOrdenServicio(sysTaller &s, int idOrden, const char* fechaCierre, float manoObra) {
+    ordenServicio* o = buscarOrdenPorID(s, idOrden);
+    if (o == nullptr || strcmp(o->estado, "ABIERTA") != 0) return false; 
+    if (manoObra < 0) return false;
+
+    if (o->numDetalles == 0 && manoObra <= 0) return false;
+
+    o->manoObra = manoObra;
+    strcpy(o->fechaCierre, fechaCierre);
+    strcpy(o->estado, "CERRADA");
+    return true;
+}
