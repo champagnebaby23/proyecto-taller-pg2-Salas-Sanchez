@@ -89,11 +89,12 @@ Vehiculo* agregarVehiculo(sysTaller &s, Vehiculo datos) {
     delete[] s.vehiculos;
     s.vehiculos = nuevoArreglo;
     s.capacidadVehiculos = nuevaCapacidad;
+    }
 
-    datos.id = s.siguienteIdVehiculo++;
-    s.vehiculos[s.numVehiculos] = datos;
+datos.id = s.siguienteIdVehiculo++;
+s.vehiculos[s.numVehiculos] = datos;
 
-    return &s.vehiculos[s.numVehiculos++];
+return &s.vehiculos[s.numVehiculos++];
 }
 
 bool especialidadValida(const char* esp) {
@@ -102,4 +103,13 @@ bool especialidadValida(const char* esp) {
             strcmp(esp, "ELECTRICIDAD") == 0 || 
             strcmp(esp, "SUSPENSION") == 0 || 
             strcmp(esp, "GENERAL") == 0);
+}
+
+Mecanico* buscarMecanicoPorID(sysTaller &s, int id) {
+    for (int i = 0; i < s.numMecanicos; i++) {
+        if (s.mecanicos[i].id == id) {
+            return &s.mecanicos[i];
+        }
+    }
+    return nullptr;
 }
