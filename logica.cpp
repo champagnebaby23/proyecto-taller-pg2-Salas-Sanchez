@@ -436,3 +436,22 @@ bool anularOrdenServicio(sysTaller &s, int idOrden) {
     strcpy(o->estado, "ANULADA");
     return true;
 }
+
+ordenServicio** listarOrdenesPorEstado(sysTaller &s, const char* estado, int &cantidad) {
+    cantidad = 0;
+    for (int i = 0; i < s.numOrdenes; i++) {
+        if (strcmp(s.ordenes[i].estado, estado) == 0) {
+            cantidad++;
+        }
+    }
+    if (cantidad == 0) return nullptr;
+
+    ordenServicio** resultado = new ordenServicio*[cantidad];
+    int idx = 0;
+    for (int i = 0; i < s.numOrdenes; i++) {
+        if (strcmp(s.ordenes[i].estado, estado) == 0) {
+            resultado[idx++] = &s.ordenes[i];
+        }
+    }
+    return resultado;
+}
