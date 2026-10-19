@@ -214,3 +214,14 @@ bool cambiarPrecioRepuesto(sysTaller &s, int idRepuesto, float nuevoPrecio) {
     r->precio = nuevoPrecio;
     return true;
 }
+
+Repuesto** listarRepuestos(sysTaller &s, int &cantidad) {
+    cantidad = s.numRepuestos;
+    if (cantidad == 0) return nullptr;
+
+    Repuesto** resultado = new Repuesto*[cantidad];
+    for (int i = 0; i < cantidad; i++) {
+        resultado[i] = &s.repuestos[i];
+    }
+    return resultado;
+}
