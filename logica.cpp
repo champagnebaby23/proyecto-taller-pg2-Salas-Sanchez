@@ -272,3 +272,10 @@ Repuesto** listarRepuestos(sysTaller &s, int &cantidad) {
     }
     return resultado;
 }
+
+ordenServicio* buscarOrdenPorID(sysTaller &s, int id) {
+    for (int i = 0; i < s.numOrdenes; i++) {
+        if (s.ordenes[i].id == id) return &s.ordenes[i];
+    }
+    return nullptr;
+}
