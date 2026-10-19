@@ -157,3 +157,11 @@ Mecanico** listarMecanicos(sysTaller &s, int &cantidad) {
     return resultado;
 }
 
+Repuesto* buscarRepuestoPorID(sysTaller &s, int id) {
+    for (int i = 0; i < s.numRepuestos; i++) {
+        if (s.repuestos[i].id == id) {
+            return &s.repuestos[i];
+        }
+    }
+    return nullptr;
+}
