@@ -381,3 +381,28 @@ bool agregarRepuestoAOrden(sysTaller &s, int idOrden, int idRepuesto, int cantid
     r->stock -= cantidad;
     return true;
 }
+
+bool quitarRepuestoDeOrden(sysTaller &s, int idOrden, int idRepuesto) {
+    ordenServicio* o = buscarOrdenPorID(s, idOrden);
+    if (o == nullptr || strcmp(o->estado, "ABIERTA") != 0) return false;
+
+    int index = -1;
+    for (int i = 0; i < o->numDetalles; i++) {
+        if (o->detalles[i].idRepuesto == idRepuesto) {
+            index = i;
+            break;
+        }
+    }
+    if (index == -1) return false;
+
+    Repuesto* r = buscarRepuestoPorID(s, idRepuesto);
+    if (r != nullptr) {
+        r->stock += o->detalles[index].cantidad;
+    }
+
+    for (int i = index; i < o->numDetalles - 1; i++) {
+        o->detalles[i] = o->detalles[i + 1];
+    }
+    o->numDetalles--;
+    return true;
+}
