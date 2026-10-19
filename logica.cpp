@@ -104,6 +104,17 @@ Vehiculo** buscarVehiculosPorPropietario(sysTaller &s, const char* subcadena, in
     return resultado;
 }
 
+Vehiculo** listarVehiculos(sysTaller &s, int &cantidad) {
+    cantidad = s.numVehiculos;
+    if (cantidad == 0) return nullptr;
+
+    Vehiculo** resultado = new Vehiculo*[cantidad];
+    for (int i = 0; i < cantidad; i++) {
+        resultado[i] = &s.vehiculos[i];
+    }
+    return resultado;
+}
+
 Vehiculo* agregarVehiculo(sysTaller &s, Vehiculo datos) {
 
     if (buscarVehiculoPorPlaca(s, datos.placa) != nullptr) {
