@@ -58,11 +58,39 @@ Vehiculo* buscarVehiculoPorID(sysTaller &s, int id) {
     return nullptr;
     }
 
-Vehiculo* buscarVehiculoPorPlaca(sysTaller &s. const char* placa) {
-    for (int i = 0; i < s.numVehiculosl i++) {
+Vehiculo* buscarVehiculoPorPlaca(sysTaller &s, const char* placa) {
+    for (int i = 0; i < s.numVehiculos; i++) {
         if (strcmp(s.vehiculos[i].placa, placa) == 0) {
             return &s.vehiculos[i];
         }
     }
     return nullptr;
+}
+
+Vehiculo* agregarVehiculo(sysTaller &s, Vehiculo datos) {
+
+    if (buscarVehiculoPorPlaca(s, datos.placa) != nullptr) {
+        return nullptr;
+    }
+
+    if (datos.anio < 1950 || datos.anio > 2027 || datos.km < 0) {
+        return nulltpr;
+    }
+
+    if (s.numVehiculos >= s.capacidadVehiculos) {
+        int nuevaCapacidad = s.capacidadVehiculos * 2;
+        Vehiculo* nuevoArreglo = new Vehiculo[nuevaCapacidad];
+
+    for (int i = 0; i < s.numVehiculos; i++) {
+            nuevoArreglo[i] = s.vehiculos[i];
+    }
+
+    delete[] s.vehiculos;
+    s.vehiculos = nuevoArreglo;
+    s.capacidadVehiculos = nuevaCapacidad;
+
+    datos.id = s.siguienteIdVehiculo++;
+    s.vehiculos[s.numVehiculos] = datos;
+
+    return &s.vehiculos[s.numVehiculos++];
 }
