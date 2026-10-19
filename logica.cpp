@@ -174,3 +174,33 @@ Repuesto* buscarRepuestoPorCodigo(sysTaller &s, const char* codigo) {
     }
     return nullptr;
 }
+
+Repuesto* registrarRepuesto(sysTaller &s, Repuesto datos) {
+    if (buscarRepuestoPorCodigo(s, datos.codigo) != nullptr) {
+        return nullptr;
+    }
+    if (datos.precio <= 0 || datos.stock < 0 || datos.stockmin < 0) {
+        return nullptr;
+    }
+    if (strlen(datos.nombre) == 0 || strlen(datos.fechaRegistro) == 0) {
+        return nullptr;
+    }
+
+    if (s.numRepuestos >= s.capacidadRepuestos) {
+        int nuevaCapacidad = s.capacidadRepuestos * 2;
+        Repuesto* nuevoArreglo = new Repuesto[nuevaCapacidad];
+
+        for (int i = 0; i < s.numRepuestos; i++) {
+            nuevoArreglo[i] = s.repuestos[i];
+        }
+
+        delete[] s.repuestos;
+        s.repuestos = nuevoArreglo;
+        s.capacidadRepuestos = nuevaCapacidad;
+    }
+
+    datos.id = s.siguienteIdRepuesto++;
+    s.repuestos[s.numRepuestos] = datos;
+
+    return &s.repuestos[s.numRepuestos++];
+}
