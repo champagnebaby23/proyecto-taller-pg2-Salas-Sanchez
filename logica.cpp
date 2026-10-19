@@ -419,3 +419,20 @@ bool cerrarOrdenServicio(sysTaller &s, int idOrden, const char* fechaCierre, flo
     strcpy(o->estado, "CERRADA");
     return true;
 }
+
+bool anularOrdenServicio(sysTaller &s, int idOrden) {
+    ordenServicio* o = buscarOrdenPorID(s, idOrden);
+    if (o == nullptr || (strcmp(o->estado, "ABIERTA") != 0 && strcmp(o->estado, "CERRADA") != 0)) {
+        return false;
+    }
+
+    for (int i = 0; i < o->numDetalles; i++) {
+        Repuesto* r = buscarRepuestoPorID(s, o->detalles[i].idRepuesto);
+        if (r != nullptr) {
+            r->stock += o->detalles[i].cantidad;
+        }
+    }
+
+    strcpy(o->estado, "ANULADA");
+    return true;
+}
