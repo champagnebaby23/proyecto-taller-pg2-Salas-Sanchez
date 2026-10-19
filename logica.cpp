@@ -1,6 +1,7 @@
 #include "logica.h"
 #include <iostream>
 #include <cstring>
+#include <cctype>
 
 using namespace std;
 
@@ -74,7 +75,7 @@ Vehiculo* agregarVehiculo(sysTaller &s, Vehiculo datos) {
     }
 
     if (datos.anio < 1950 || datos.anio > 2027 || datos.km < 0) {
-        return nulltpr;
+        return nullptr;
     }
 
     if (s.numVehiculos >= s.capacidadVehiculos) {
@@ -93,4 +94,12 @@ Vehiculo* agregarVehiculo(sysTaller &s, Vehiculo datos) {
     s.vehiculos[s.numVehiculos] = datos;
 
     return &s.vehiculos[s.numVehiculos++];
+}
+
+bool especialidadValida(const char* esp) {
+    return (strcmp(esp, "MOTOR") == 0 || 
+            strcmp(esp, "FRENOS") == 0 || 
+            strcmp(esp, "ELECTRICIDAD") == 0 || 
+            strcmp(esp, "SUSPENSION") == 0 || 
+            strcmp(esp, "GENERAL") == 0);
 }
