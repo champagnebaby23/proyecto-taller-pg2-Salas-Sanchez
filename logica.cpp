@@ -204,3 +204,13 @@ Repuesto* registrarRepuesto(sysTaller &s, Repuesto datos) {
 
     return &s.repuestos[s.numRepuestos++];
 }
+
+bool cambiarPrecioRepuesto(sysTaller &s, int idRepuesto, float nuevoPrecio) {
+    if (nuevoPrecio <= 0) return false;
+
+    Repuesto* r = buscarRepuestoPorID(s, idRepuesto);
+    if (r == nullptr) return false;
+
+    r->precio = nuevoPrecio;
+    return true;
+}
