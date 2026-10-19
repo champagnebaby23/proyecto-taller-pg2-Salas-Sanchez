@@ -5,6 +5,24 @@
 
 using namespace std;
 
+// FUNCIONES AUXILIARES
+void aMinusculas(const char* origen, char* destino) {
+    int i = 0;
+    while (origen[i] != '\0') {
+        destino[i] = tolower(origen[i]);
+        i++;
+    }
+    destino[i] = '\0';
+}
+
+bool contieneSubcadena(const char* texto, const char* subcadena) {
+    char t[100], sub[100];
+    aMinusculas(texto, t);
+    aMinusculas(subcadena, sub);
+    return strstr(t, sub) != nullptr;
+}
+
+
 void inicializarSistema(sysTaller &s, const char* nombre, const char* rif, const char* dir, const char* tel) {
 
     strcpy(s.taller.nombre, nombre);
