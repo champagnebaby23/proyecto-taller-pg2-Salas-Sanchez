@@ -287,3 +287,58 @@ float calcularTotalOrden(const ordenServicio &o) {
     }
     return o.manoObra + totalRepuestos;
 }
+
+ordenServicio* abrirOrdenServicio(sysTaller &s, int idVehiculo, int idMecanico, const char* fechaApertura, const char* descripcionFalla, int kmIngreso) {
+    Vehiculo* v = buscarVehiculoPorID(s, idVehiculo);
+    if (v == nullptr) return nullptr;
+
+    Mecanico* m = buscarMecanicoPorID(s, idMecanico);
+    if (m == nullptr) return nullptr;
+
+    for (int i = 0; i < s.numOrdenes; i++) {
+        if (s.ordenes[i].idVehiculo == idVehiculo && strcmp(s.ordenes[i].estado, "ABIERTA") == 0) {
+            return nullptr; 
+        }
+    }
+
+    int ordenesAbiertasMecanico = 0;
+    for (int i = 0; i < s.numOrdenes; i++) {
+        if (s.ordenes[i].idMecanico == idMecanico && strcmp(s.ordenes[i].estado, "ABIERTA") == 0) {
+            ordenesAbiertasMecanico++;
+        }
+    }
+    if (ordenesAbiertasMecanico >= 3) return nullptr;
+
+    if (kmIngreso < v->km) return nullptr;
+
+    v->km = kmIngreso;
+
+    if (s.numOrdenes >= s.capacidadOrdenes) {
+        int nuevaCapacidad = s.capacidadOrdenes * 2;
+        ordenServicio* nuevoArreglo = new ordenServicio[nuevaCapacidad];
+        for (int i = 0; i < s.numOrdenes; i++) {
+            nuevoArreglo[i] = s.ordenes[i];
+        }
+        delete[] s.ordenes;
+        s.ordenes = nuevoArreglo;
+        s.capacidadOrdenes = nuevaCapacidad;
+    }
+
+    ordenServicio nueva;
+    nueva.id = s.siguienteIdOrden++;
+    nueva.idVehiculo = idVehiculo;
+    nueva.idMecanico = idMecanico;
+    strcpy(nueva.fechaApertura, fechaApertura);
+    strcpy(nueva.fechaCierre, "");
+    strcpy(nueva.estado, "ABIERTA");
+    strcpy(nueva.descripcionFalla, descripcionFalla);
+    nueva.kmIngreso = kmIngreso;
+    nueva.manoObra = 0.0f;
+
+    nueva.capacidadDetalles = 2;
+    nueva.numDetalles = 0;
+    nueva.detalles = new detalleOrden[nueva.capacidadDetalles];
+
+    s.ordenes[s.numOrdenes] = nueva;
+    return &s.ordenes[s.numOrdenes++];
+}
