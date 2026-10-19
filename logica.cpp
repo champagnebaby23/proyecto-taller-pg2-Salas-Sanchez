@@ -57,3 +57,12 @@ Vehiculo* buscarVehiculoPorID(sysTaller &s, int id) {
         }
     return nullptr;
     }
+
+Vehiculo* buscarVehiculoPorPlaca(sysTaller &s. const char* placa) {
+    for (int i = 0; i < s.numVehiculosl i++) {
+        if (strcmp(s.vehiculos[i].placa, placa) == 0) {
+            return &s.vehiculos[i];
+        }
+    }
+    return nullptr;
+}
