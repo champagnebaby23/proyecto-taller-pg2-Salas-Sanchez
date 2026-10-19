@@ -279,3 +279,11 @@ ordenServicio* buscarOrdenPorID(sysTaller &s, int id) {
     }
     return nullptr;
 }
+
+float calcularTotalOrden(const ordenServicio &o) {
+    float totalRepuestos = 0;
+    for (int i = 0; i < o.numDetalles; i++) {
+        totalRepuestos += (o.detalles[i].cantidad * o.detalles[i].precioUnitario);
+    }
+    return o.manoObra + totalRepuestos;
+}
