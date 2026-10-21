@@ -508,3 +508,48 @@ void menuOrdenes(sysTaller &s) {
         }
     } while(op != 0);
 }
+
+int main() {
+    sysTaller miTaller;
+
+    inicializarSistema(miTaller, "Taller Mecánico URDANETA", "J-00000000-0", "Av. Principal del Taller", "0261-5550000");
+
+    int opcion;
+    do {
+        cout << "\n========================================" << endl;
+        cout << "     SISTEMA DE GESTIÓN DE TALLER       " << endl;
+        cout << "     Taller: " << miTaller.taller.nombre << endl;
+        cout << "========================================" << endl;
+        cout << "1. Gestión de Vehículos" << endl;
+        cout << "2. Gestión de Mecánicos" << endl;
+        cout << "3. Inventario de Repuestos" << endl;
+        cout << "4. Órdenes de Servicio" << endl;
+        cout << "0. Salir" << endl;
+        cout << "Seleccione una opción: ";
+        cin >> opcion;
+
+        switch (opcion) {
+            case 1: menuVehiculos(miTaller); break;
+            case 2: menuMecanicos(miTaller); break;
+            case 3: menuRepuestos(miTaller); break;
+            case 4: menuOrdenes(miTaller); break;
+            case 0: {
+                char conf;
+                cout << "¿Está seguro de salir? (Se perderán los datos en memoria) (S/N): ";
+                cin >> conf;
+                if (conf != 'S' && conf != 's') {
+                    opcion = -1; // Evita que salga si cancela
+                }
+                break;
+            }
+            default:
+                cout << "Opción inválida. Intente nuevamente." << endl;
+        }
+    } while (opcion != 0);
+
+    liberarSistema(miTaller);
+    cout << "\nMemoria liberada exitosamente. ¡Programa finalizado con éxito!" << endl;
+
+    return 0;
+}
+
