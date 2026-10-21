@@ -170,3 +170,67 @@ void menuVehiculos(sysTaller &s) {
     } while(op != 0);
 }
 
+void mostrarMecanico(Mecanico m) {
+    cout << "----------------------------------------" << endl;
+    cout << "ID           : " << m.id << endl;
+    cout << "Nombre       : " << m.nombre << endl;
+    cout << "Cédula       : " << m.cedula << endl;
+    cout << "Especialidad : " << m.especialidad << endl;
+    cout << "Fecha Ingreso: " << m.fechaIngreso << endl;
+    cout << "----------------------------------------" << endl;
+}
+
+void menuRegistrarMecanico(sysTaller &s) {
+    Mecanico m;
+    cout << "\n--- REGISTRAR MECÁNICO ---" << endl;
+    cout << "Nombre completo: ";
+    cin >> ws;
+    cin.getline(m.nombre, 100);
+    cout << "Cédula: ";
+    cin >> m.cedula;
+    cout << "Especialidad (MOTOR, FRENOS, ELECTRICIDAD, SUSPENSION, GENERAL): ";
+    cin >> m.especialidad;
+    cout << "Fecha de ingreso (YYYY-MM-DD): ";
+    cin >> m.fechaIngreso;
+
+    char conf;
+    cout << "¿Guardar mecánico? (S/N): ";
+    cin >> conf;
+    if (conf == 'S' || conf == 's') {
+        Mecanico* nuevo = registrarMecanico(s, m);
+        if (nuevo != nullptr) {
+            cout << "¡Mecánico registrado con ID #" << nuevo->id << "!" << endl;
+        } else {
+            cout << "ERROR: Cédula duplicada o especialidad inválida." << endl;
+        }
+    }
+}
+
+void menuListarMecanicos(sysTaller &s) {
+    int cantidad = 0;
+    Mecanico** lista = listarMecanicos(s, cantidad);
+    cout << "\n--- LISTADO DE MECÁNICOS ---" << endl;
+    if (cantidad == 0 || lista == nullptr) {
+        cout << "No hay mecánicos registrados." << endl;
+        return;
+    }
+    for (int i = 0; i < cantidad; i++) {
+        mostrarMecanico(*lista[i]);
+    }
+    delete[] lista;
+}
+
+void menuMecanicos(sysTaller &s) {
+    int op;
+    do {
+        cout << "\n=== GESTIÓN DE MECÁNICOS ===" << endl;
+        cout << "1. Registrar mecánico" << endl;
+        cout << "2. Listar mecánicos" << endl;
+        cout << "0. Volver" << endl;
+        cout << "Seleccione opción: ";
+        cin >> op;
+        if (op == 1) menuRegistrarMecanico(s);
+        else if (op == 2) menuListarMecanicos(s);
+    } while(op != 0);
+}
+
