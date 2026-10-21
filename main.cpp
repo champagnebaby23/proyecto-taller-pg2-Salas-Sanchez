@@ -21,6 +21,8 @@ void mostrarVehiculo(Vehiculo v) {
     cout << "Registro    : " << v.fechaRegistro << endl;
     cout << "----------------------------------------" << endl;
 
+}
+
 void menuRegistrarVehiculo(sysTaller &s) {
     Vehiculo v;
     cout << "\n--- REGISTRAR NUEVO VEHÍCULO ---" << endl;
@@ -234,3 +236,110 @@ void menuMecanicos(sysTaller &s) {
     } while(op != 0);
 }
 
+void mostrarRepuesto(Repuesto r) {
+    cout << "----------------------------------------" << endl;
+    cout << "ID           : " << r.id << endl;
+    cout << "Código       : " << r.codigo << endl;
+    cout << "Nombre       : " << r.nombre << " (" << r.marca << ")" << endl;
+    cout << "Precio       : $" << r.precio << endl;
+    cout << "Stock        : " << r.stock << " (Mínimo: " << r.stockmin << ")" << endl;
+    if (r.stock <= r.stockmin) {
+        cout << "ESTADO       : ** BAJO STOCK **" << endl;
+    }
+    cout << "----------------------------------------" << endl;
+}
+
+void menuRegistrarRepuesto(sysTaller &s) {
+    Repuesto r;
+    cout << "\n--- REGISTRAR REPUESTO ---" << endl;
+    cout << "Código único: ";
+    cin >> r.codigo;
+    cout << "Nombre del repuesto: ";
+    cin >> ws;
+    cin.getline(r.nombre, 100);
+    cout << "Marca: ";
+    cin.getline(r.marca, 50);
+    cout << "Precio unitario: ";
+    cin >> r.precio;
+    cout << "Stock inicial: ";
+    cin >> r.stock;
+    cout << "Stock mínimo de alerta: ";
+    cin >> r.stockmin;
+    cout << "Fecha registro (YYYY-MM-DD): ";
+    cin >> r.fechaRegistro;
+
+    char conf;
+    cout << "¿Guardar repuesto? (S/N): ";
+    cin >> conf;
+    if (conf == 'S' || conf == 's') {
+        Repuesto* nuevo = registrarRepuesto(s, r);
+        if (nuevo != nullptr) {
+            cout << "¡Repuesto registrado con ID #" << nuevo->id << "!" << endl;
+        } else {
+            cout << "ERROR: Código duplicado o valores inválidos (precio/stock)." << endl;
+        }
+    }
+}
+
+void menuEntradaMercancia(sysTaller &s) {
+    int id, cant;
+    cout << "\n--- ENTRADA DE MERCANCÍA ---" << endl;
+    cout << "ID del repuesto: ";
+    cin >> id;
+    cout << "Cantidad a sumar al stock: ";
+    cin >> cant;
+    if (registrarEntradaMercancia(s, id, cant)) {
+        cout << "¡Stock actualizado con éxito!" << endl;
+    } else {
+        cout << "ERROR: Repuesto no encontrado o cantidad inválida." << endl;
+    }
+}
+
+void menuCambiarPrecio(sysTaller &s) {
+    int id;
+    float nuevoP;
+    cout << "\n--- CAMBIAR PRECIO DE REPUESTO ---" << endl;
+    cout << "ID del repuesto: ";
+    cin >> id;
+    cout << "Nuevo precio unitario: ";
+    cin >> nuevoP;
+    if (cambiarPrecioRepuesto(s, id, nuevoP)) {
+        cout << "¡Precio actualizado con éxito!" << endl;
+    } else {
+        cout << "ERROR: Repuesto no encontrado o precio inválido." << endl;
+    }
+}
+
+void menuListarRepuestos(sysTaller &s) {
+    int cantidad = 0;
+    Repuesto** lista = listarRepuestos(s, cantidad);
+    cout << "\n--- INVENTARIO DE REPUESTOS ---" << endl;
+    if (cantidad == 0 || lista == nullptr) {
+        cout << "Inventario vacío." << endl;
+        return;
+    }
+    for (int i = 0; i < cantidad; i++) {
+        mostrarRepuesto(*lista[i]);
+    }
+    delete[] lista;
+}
+
+void menuRepuestos(sysTaller &s) {
+    int op;
+    do {
+        cout << "\n=== INVENTARIO DE REPUESTOS ===" << endl;
+        cout << "1. Registrar repuesto" << endl;
+        cout << "2. Registrar entrada de mercancía" << endl;
+        cout << "3. Cambiar precio" << endl;
+        cout << "4. Listar repuestos" << endl;
+        cout << "0. Volver" << endl;
+        cout << "Seleccione opción: ";
+        cin >> op;
+        switch(op) {
+            case 1: menuRegistrarRepuesto(s); break;
+            case 2: menuEntradaMercancia(s); break;
+            case 3: menuCambiarPrecio(s); break;
+            case 4: menuListarRepuestos(s); break;
+        }
+    } while(op != 0);
+}

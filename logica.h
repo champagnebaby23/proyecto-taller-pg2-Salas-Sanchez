@@ -8,7 +8,7 @@ void liberarSistema(sysTaller &s);
 
 Vehiculo* agregarVehiculo(sysTaller &s, Vehiculo datos);
 Vehiculo* buscarVehiculoPorID(sysTaller &s, int id);
-Vehiculo* buscarVehiculoPorPlaca(sysTaller &s, const char placa);
+Vehiculo* buscarVehiculoPorPlaca(sysTaller &s, const char* placa);
 Vehiculo** buscarVehiculosPorPropietario(sysTaller &s, const char* subcadena, int &cantidad);
 Vehiculo** listarVehiculos(sysTaller &s, int &cantidad);
 bool actualizarVehiculo(sysTaller &s, int id, Vehiculo datos);
@@ -37,4 +37,3 @@ ordenServicio* buscarOrdenPorID(sysTaller &s, int id);
 ordenServicio** listarOrdenesPorEstado(sysTaller &s, const char* estado, int &cantidad);
 
 #endif
-
