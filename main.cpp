@@ -343,3 +343,168 @@ void menuRepuestos(sysTaller &s) {
         }
     } while(op != 0);
 }
+
+void mostrarDetalleOrden(sysTaller &s, const ordenServicio &o) {
+    Vehiculo* v = buscarVehiculoPorID(s, o.idVehiculo);
+    Mecanico* m = buscarMecanicoPorID(s, o.idMecanico);
+
+    cout << "\n========================================" << endl;
+    cout << "         ORDEN DE SERVICIO #" << o.id << endl;
+    cout << "========================================" << endl;
+    cout << "Estado     : " << o.estado << endl;
+    cout << "Apertura   : " << o.fechaApertura << " | Cierre: " << (strlen(o.fechaCierre) > 0 ? o.fechaCierre : "N/A") << endl;
+    if (v) cout << "Vehículo   : " << v->placa << " - " << v->marca << " " << v->modelo << " (" << o.kmIngreso << " km)" << endl;
+    if (m) cout << "Mecánico   : " << m->nombre << " (" << m->especialidad << ")" << endl;
+    cout << "Falla      : " << o.descripcionFalla << endl;
+    cout << "----------------------------------------" << endl;
+    cout << left << setw(8) << "Código" << setw(18) << "Repuesto" << setw(6) << "Cant" << setw(8) << "P.Unit" << setw(8) << "Total" << endl;
+    cout << "----------------------------------------" << endl;
+
+    for (int i = 0; i < o.numDetalles; i++) {
+        Repuesto* r = buscarRepuestoPorID(s, o.detalles[i].idRepuesto);
+        string nomRep = r ? r->nombre : "Desconocido";
+        string codRep = r ? r->codigo : "N/A";
+        float subtotal = o.detalles[i].cantidad * o.detalles[i].precioUnitario;
+        cout << left << setw(8) << codRep << setw(18) << nomRep.substr(0,16) 
+             << setw(6) << o.detalles[i].cantidad << setw(8) << o.detalles[i].precioUnitario 
+             << setw(8) << subtotal << endl;
+    }
+    cout << "----------------------------------------" << endl;
+    cout << "Mano de obra: $" << o.manoObra << endl;
+    cout << "TOTAL       : $" << calcularTotalOrden(o) << endl;
+    cout << "========================================" << endl;
+}
+
+void menuAbrirOrden(sysTaller &s) {
+    int idV, idM, km;
+    char fecha[11], falla[200];
+    cout << "\n--- ABRIR ORDEN DE SERVICIO ---" << endl;
+    cout << "ID del vehículo: ";
+    cin >> idV;
+    cout << "ID del mecánico: ";
+    cin >> idM;
+    cout << "Fecha de apertura (YYYY-MM-DD): ";
+    cin >> fecha;
+    cout << "Kilometraje de ingreso: ";
+    cin >> km;
+    cout << "Descripción de la falla: ";
+    cin >> ws;
+    cin.getline(falla, 200);
+
+    ordenServicio* nueva = abrirOrdenServicio(s, idV, idM, fecha, falla, km);
+    if (nueva != nullptr) {
+        cout << "¡Orden de servicio #" << nueva->id << " abierta exitosamente!" << endl;
+    } else {
+        cout << "ERROR: No se pudo abrir la orden. Verifique si el vehículo/mecánico existen, si el vehículo ya tiene otra orden abierta, si el mecánico superó el límite de 3 órdenes o si el kilometraje es menor al registrado." << endl;
+    }
+}
+
+void menuAgregarRepuestoOrden(sysTaller &s) {
+    int idO, idR, cant;
+    cout << "\n--- AGREGAR REPUESTO A ORDEN ---" << endl;
+    cout << "ID de la orden: ";
+    cin >> idO;
+    cout << "ID del repuesto: ";
+    cin >> idR;
+    cout << "Cantidad: ";
+    cin >> cant;
+
+    if (agregarRepuestoAOrden(s, idO, idR, cant)) {
+        cout << "¡Repuesto agregado a la orden correctamente!" << endl;
+    } else {
+        cout << "ERROR: Orden no abierta, repuesto no encontrado o stock insuficiente." << endl;
+    }
+}
+
+void menuQuitarRepuestoOrden(sysTaller &s) {
+    int idO, idR;
+    cout << "\n--- QUITAR REPUESTO DE ORDEN ---" << endl;
+    cout << "ID de la orden: ";
+    cin >> idO;
+    cout << "ID del repuesto a quitar de la línea: ";
+    cin >> idR;
+
+    if (quitarRepuestoDeOrden(s, idO, idR)) {
+        cout << "¡Línea de repuesto removida y stock devuelto al inventario!" << endl;
+    } else {
+        cout << "ERROR: Orden no abierta o repuesto no encontrado en la orden." << endl;
+    }
+}
+
+void menuCerrarOrden(sysTaller &s) {
+    int idO;
+    float mano;
+    char fecha[11];
+    cout << "\n--- CERRAR ORDEN DE SERVICIO ---" << endl;
+    cout << "ID de la orden: ";
+    cin >> idO;
+    cout << "Fecha de cierre (YYYY-MM-DD): ";
+    cin >> fecha;
+    cout << "Costo de mano de obra: ";
+    cin >> mano;
+
+    char conf;
+    cout << "¿Desea cerrar esta orden? (Ya no se podrá modificar) (S/N): ";
+    cin >> conf;
+    if (conf == 'S' || conf == 's') {
+        if (cerrarOrdenServicio(s, idO, fecha, mano)) {
+            cout << "¡Orden cerrada exitosamente!" << endl;
+        } else {
+            cout << "ERROR: Orden no encontrada, ya no está abierta o datos de mano de obra inválidos." << endl;
+        }
+    }
+}
+
+void menuAnularOrden(sysTaller &s) {
+    int idO;
+    cout << "\n--- ANULAR ORDEN DE SERVICIO ---" << endl;
+    cout << "ID de la orden a anular: ";
+    cin >> idO;
+
+    char conf;
+    cout << "¿Confirma la anulación? (Los repuestos volverán al inventario) (S/N): ";
+    cin >> conf;
+    if (conf == 'S' || conf == 's') {
+        if (anularOrdenServicio(s, idO)) {
+            cout << "¡Orden anulada y stock devuelto al inventario!" << endl;
+        } else {
+            cout << "ERROR: Orden no encontrada o estado inválido para anular." << endl;
+        }
+    }
+}
+
+void menuVerDetalleOrden(sysTaller &s) {
+    int idO;
+    cout << "Ingrese el ID de la orden: ";
+    cin >> idO;
+    ordenServicio* o = buscarOrdenPorID(s, idO);
+    if (o != nullptr) {
+        mostrarDetalleOrden(s, *o);
+    } else {
+        cout << "ERROR: Orden no encontrada." << endl;
+    }
+}
+
+void menuOrdenes(sysTaller &s) {
+    int op;
+    do {
+        cout << "\n=== ÓRDENES DE SERVICIO ===" << endl;
+        cout << "1. Abrir orden" << endl;
+        cout << "2. Agregar repuesto a orden" << endl;
+        cout << "3. Quitar repuesto de orden" << endl;
+        cout << "4. Cerrar orden" << endl;
+        cout << "5. Anular orden" << endl;
+        cout << "6. Ver detalle de orden" << endl;
+        cout << "0. Volver" << endl;
+        cout << "Seleccione opción: ";
+        cin >> op;
+        switch(op) {
+            case 1: menuAbrirOrden(s); break;
+            case 2: menuAgregarRepuestoOrden(s); break;
+            case 3: menuQuitarRepuestoOrden(s); break;
+            case 4: menuCerrarOrden(s); break;
+            case 5: menuAnularOrden(s); break;
+            case 6: menuVerDetalleOrden(s); break;
+        }
+    } while(op != 0);
+}
