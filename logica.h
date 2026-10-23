@@ -24,8 +24,9 @@ Repuesto* registrarRepuesto(sysTaller &s, Repuesto datos);
 Repuesto* buscarRepuestoPorID(sysTaller &s, int id);
 Repuesto* buscarRepuestoPorCodigo(sysTaller &s, const char* codigo);
 bool registrarEntradaMercancia(sysTaller &s, int idRepuesto, int cantidadAdicional);
-bool cambiarPrecioRepuesto(sysTaller &s, int idRepuesto, float nuevoPrecio);
 Repuesto** listarRepuestos(sysTaller &s, int &cantidad);
+bool cambiarPrecioRepuesto(sysTaller &s, int idRepuesto, float nuevoPrecio);
+bool eliminarRepuesto(sysTaller &s, int id);
 
 ordenServicio* abrirOrdenServicio(sysTaller &s, int idVehiculo, int idMecanico, const char* fechaApertura, const char* descripcionFalla, int kmIngreso);
 bool agregarRepuestoAOrden(sysTaller &s, int idOrden, int idRepuesto, int cantidad);

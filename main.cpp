@@ -5,12 +5,20 @@
 #include "logica.h"
 using namespace std;
 
+// ====================
+// CAPA DE PRESENTACION
+// ====================
+//Prototipos de los menus principales
 void menuVehiculos(sysTaller &s);
 void menuMecanicos(sysTaller &s);
 void menuRepuestos(sysTaller &s);
 void menuOrdenes(sysTaller &s);
 
+// ====================
+// MODULO DE VEHICULOS
+// ====================
 void mostrarVehiculo(Vehiculo v) {
+    // Los ID nunca se muestran solos, siempre van acompa;ados de datos descriptivos de la entidad
     cout << "----------------------------------------" << endl;
     cout << "ID          : " << v.id << endl;
     cout << "Placa       : " << v.placa << endl;
@@ -28,7 +36,8 @@ void menuRegistrarVehiculo(sysTaller &s) {
     cout << "\n--- REGISTRAR NUEVO VEHÍCULO ---" << endl;
     cout << "Placa (alfanumérica, 6-7 caracteres): ";
     cin >> v.placa;
-    
+
+    // Se usa cin >> ws para limpiar el bufer antes de usar un cin.getline y evitar que se salte la lectura
     cout << "Marca: ";
     cin >> ws;
     cin.getline(v.marca, 50);
@@ -60,7 +69,10 @@ void menuRegistrarVehiculo(sysTaller &s) {
     cin >> confirmacion;
 
     if (confirmacion == 'S' || confirmacion == 's') {
+        // Se envia la estructura a logica.cpp
         Vehiculo* nuevo = agregarVehiculo(s, v);
+
+        // La presentacion lee el resultado (puntero o nullptr) para imprimir el mensaje correspondiente indicando que pudo fallar
         if (nuevo != nullptr) {
             cout << "¡Vehículo registrado exitosamente con ID #" << nuevo->id << "!" << endl;
         } else {
@@ -102,6 +114,7 @@ void menuBuscarVehiculo(sysTaller &s) {
         cin >> ws;
         cin.getline(sub, 100);
         int cantidad = 0;
+        // Recibiendo arreglos temporales: Retorna un Vehiculo**
         Vehiculo** lista = buscarVehiculosPorPropietario(s, sub, cantidad);
         if (cantidad == 0 || lista == nullptr) {
             cout << "No se encontraron vehículos para el criterio \"" << sub << "\"." << endl;
@@ -130,16 +143,17 @@ void menuListarVehiculos(sysTaller &s) {
     delete[] lista;
 }
 
+
 void menuEliminarVehiculo(sysTaller &s) {
     int id;
     cout << "\n--- ELIMINAR VEHÍCULO ---" << endl;
     cout << "Ingrese el ID del vehículo a eliminar: ";
     cin >> id;
 
-    char conf;
+    char confirmacion;
     cout << "¿Está seguro de eliminar físicamente este vehículo? (S/N): ";
-    cin >> conf;
-    if (conf == 'S' || conf == 's') {
+    cin >> confirmacion;
+    if (confirmacion == 'S' || confirmacion == 's') {
         if (eliminarVehiculo(s, id)) {
             cout << "¡Vehículo eliminado exitosamente!" << endl;
         } else {
@@ -151,25 +165,25 @@ void menuEliminarVehiculo(sysTaller &s) {
 }
 
 void menuVehiculos(sysTaller &s) {
-    int op;
+    int opcion;
     do {
-        cout << "\n=== GESTIÓN DE VEHÍCULOS ===" << endl;
-        cout << "1. Registrar vehículo" << endl;
-        cout << "2. Buscar vehículo" << endl;
-        cout << "3. Listar vehículos" << endl;
-        cout << "4. Eliminar vehículo" << endl;
-        cout << "0. Volver al menú principal" << endl;
-        cout << "Seleccione una opción: ";
-        cin >> op;
-        switch(op) {
+        cout << "\n=== GESTION DE VEHICULOS ===" << endl;
+        cout << "1. Registrar vehiculo" << endl;
+        cout << "2. Buscar vehiculo" << endl;
+        cout << "3. Listar vehiculos" << endl;
+        cout << "4. Eliminar vehiculo" << endl;
+        cout << "0. Volver al menu principal" << endl;
+        cout << "Seleccione una opcion: ";
+        cin >> opcion;
+        switch(opcion) {
             case 1: menuRegistrarVehiculo(s); break;
             case 2: menuBuscarVehiculo(s); break;
             case 3: menuListarVehiculos(s); break;
             case 4: menuEliminarVehiculo(s); break;
             case 0: break;
-            default: cout << "Opción inválida." << endl;
+            default: cout << "Opcion invalida." << endl;
         }
-    } while(op != 0);
+    } while(opcion != 0);
 }
 
 void mostrarMecanico(Mecanico m) {
@@ -195,10 +209,10 @@ void menuRegistrarMecanico(sysTaller &s) {
     cout << "Fecha de ingreso (YYYY-MM-DD): ";
     cin >> m.fechaIngreso;
 
-    char conf;
+    char confirmacion;
     cout << "¿Guardar mecánico? (S/N): ";
-    cin >> conf;
-    if (conf == 'S' || conf == 's') {
+    cin >> confirmacion;
+    if (confirmacion == 'S' || confirmacion == 's') {
         Mecanico* nuevo = registrarMecanico(s, m);
         if (nuevo != nullptr) {
             cout << "¡Mecánico registrado con ID #" << nuevo->id << "!" << endl;
@@ -211,9 +225,9 @@ void menuRegistrarMecanico(sysTaller &s) {
 void menuListarMecanicos(sysTaller &s) {
     int cantidad = 0;
     Mecanico** lista = listarMecanicos(s, cantidad);
-    cout << "\n--- LISTADO DE MECÁNICOS ---" << endl;
+    cout << "\n--- LISTADO DE MECANICOS ---" << endl;
     if (cantidad == 0 || lista == nullptr) {
-        cout << "No hay mecánicos registrados." << endl;
+        cout << "No hay mecanicos registrados." << endl;
         return;
     }
     for (int i = 0; i < cantidad; i++) {
@@ -223,23 +237,23 @@ void menuListarMecanicos(sysTaller &s) {
 }
 
 void menuMecanicos(sysTaller &s) {
-    int op;
+    int opcion;
     do {
-        cout << "\n=== GESTIÓN DE MECÁNICOS ===" << endl;
-        cout << "1. Registrar mecánico" << endl;
-        cout << "2. Listar mecánicos" << endl;
+        cout << "\n=== GESTION DE MECANICOS ===" << endl;
+        cout << "1. Registrar mecanico" << endl;
+        cout << "2. Listar mecanicos" << endl;
         cout << "0. Volver" << endl;
-        cout << "Seleccione opción: ";
-        cin >> op;
-        if (op == 1) menuRegistrarMecanico(s);
-        else if (op == 2) menuListarMecanicos(s);
-    } while(op != 0);
+        cout << "Seleccione opcion: ";
+        cin >> opcion;
+        if (opcion == 1) menuRegistrarMecanico(s);
+        else if (opcion == 2) menuListarMecanicos(s);
+    } while(opcion != 0);
 }
 
 void mostrarRepuesto(Repuesto r) {
     cout << "----------------------------------------" << endl;
     cout << "ID           : " << r.id << endl;
-    cout << "Código       : " << r.codigo << endl;
+    cout << "Codigo       : " << r.codigo << endl;
     cout << "Nombre       : " << r.nombre << " (" << r.marca << ")" << endl;
     cout << "Precio       : $" << r.precio << endl;
     cout << "Stock        : " << r.stock << " (Mínimo: " << r.stockmin << ")" << endl;
@@ -252,7 +266,7 @@ void mostrarRepuesto(Repuesto r) {
 void menuRegistrarRepuesto(sysTaller &s) {
     Repuesto r;
     cout << "\n--- REGISTRAR REPUESTO ---" << endl;
-    cout << "Código único: ";
+    cout << "Codigo unico: ";
     cin >> r.codigo;
     cout << "Nombre del repuesto: ";
     cin >> ws;
@@ -263,7 +277,7 @@ void menuRegistrarRepuesto(sysTaller &s) {
     cin >> r.precio;
     cout << "Stock inicial: ";
     cin >> r.stock;
-    cout << "Stock mínimo de alerta: ";
+    cout << "Stock minimo de alerta: ";
     cin >> r.stockmin;
     cout << "Fecha registro (YYYY-MM-DD): ";
     cin >> r.fechaRegistro;
@@ -276,22 +290,22 @@ void menuRegistrarRepuesto(sysTaller &s) {
         if (nuevo != nullptr) {
             cout << "¡Repuesto registrado con ID #" << nuevo->id << "!" << endl;
         } else {
-            cout << "ERROR: Código duplicado o valores inválidos (precio/stock)." << endl;
+            cout << "ERROR: Codigo duplicado o valores invalidos (precio/stock)." << endl;
         }
     }
 }
 
 void menuEntradaMercancia(sysTaller &s) {
     int id, cant;
-    cout << "\n--- ENTRADA DE MERCANCÍA ---" << endl;
+    cout << "\n--- ENTRADA DE MERCANCIA ---" << endl;
     cout << "ID del repuesto: ";
     cin >> id;
     cout << "Cantidad a sumar al stock: ";
     cin >> cant;
     if (registrarEntradaMercancia(s, id, cant)) {
-        cout << "¡Stock actualizado con éxito!" << endl;
+        cout << "¡Stock actualizado con exito!" << endl;
     } else {
-        cout << "ERROR: Repuesto no encontrado o cantidad inválida." << endl;
+        cout << "ERROR: Repuesto no encontrado o cantidad invalida." << endl;
     }
 }
 
@@ -304,9 +318,9 @@ void menuCambiarPrecio(sysTaller &s) {
     cout << "Nuevo precio unitario: ";
     cin >> nuevoP;
     if (cambiarPrecioRepuesto(s, id, nuevoP)) {
-        cout << "¡Precio actualizado con éxito!" << endl;
+        cout << "¡Precio actualizado con exito!" << endl;
     } else {
-        cout << "ERROR: Repuesto no encontrado o precio inválido." << endl;
+        cout << "ERROR: Repuesto no encontrado o precio invalido." << endl;
     }
 }
 
@@ -315,7 +329,7 @@ void menuListarRepuestos(sysTaller &s) {
     Repuesto** lista = listarRepuestos(s, cantidad);
     cout << "\n--- INVENTARIO DE REPUESTOS ---" << endl;
     if (cantidad == 0 || lista == nullptr) {
-        cout << "Inventario vacío." << endl;
+        cout << "Inventario vacio." << endl;
         return;
     }
     for (int i = 0; i < cantidad; i++) {
@@ -325,23 +339,23 @@ void menuListarRepuestos(sysTaller &s) {
 }
 
 void menuRepuestos(sysTaller &s) {
-    int op;
+    int opcion;
     do {
         cout << "\n=== INVENTARIO DE REPUESTOS ===" << endl;
         cout << "1. Registrar repuesto" << endl;
-        cout << "2. Registrar entrada de mercancía" << endl;
+        cout << "2. Registrar entrada de mercancia" << endl;
         cout << "3. Cambiar precio" << endl;
         cout << "4. Listar repuestos" << endl;
         cout << "0. Volver" << endl;
-        cout << "Seleccione opción: ";
-        cin >> op;
-        switch(op) {
+        cout << "Seleccione opcion: ";
+        cin >> opcion;
+        switch(opcion) {
             case 1: menuRegistrarRepuesto(s); break;
             case 2: menuEntradaMercancia(s); break;
             case 3: menuCambiarPrecio(s); break;
             case 4: menuListarRepuestos(s); break;
         }
-    } while(op != 0);
+    } while(opcion != 0);
 }
 
 void mostrarDetalleOrden(sysTaller &s, const ordenServicio &o) {
@@ -353,17 +367,17 @@ void mostrarDetalleOrden(sysTaller &s, const ordenServicio &o) {
     cout << "========================================" << endl;
     cout << "Estado     : " << o.estado << endl;
     cout << "Apertura   : " << o.fechaApertura << " | Cierre: " << (strlen(o.fechaCierre) > 0 ? o.fechaCierre : "N/A") << endl;
-    if (v) cout << "Vehículo   : " << v->placa << " - " << v->marca << " " << v->modelo << " (" << o.kmIngreso << " km)" << endl;
-    if (m) cout << "Mecánico   : " << m->nombre << " (" << m->especialidad << ")" << endl;
+    if (v) cout << "Vehiculo   : " << v->placa << " - " << v->marca << " " << v->modelo << " (" << o.kmIngreso << " km)" << endl;
+    if (m) cout << "Mecanico   : " << m->nombre << " (" << m->especialidad << ")" << endl;
     cout << "Falla      : " << o.descripcionFalla << endl;
     cout << "----------------------------------------" << endl;
-    cout << left << setw(8) << "Código" << setw(18) << "Repuesto" << setw(6) << "Cant" << setw(8) << "P.Unit" << setw(8) << "Total" << endl;
+    cout << left << setw(8) << "Codigo" << setw(18) << "Repuesto" << setw(6) << "Cant" << setw(8) << "P.Unit" << setw(8) << "Total" << endl;
     cout << "----------------------------------------" << endl;
 
     for (int i = 0; i < o.numDetalles; i++) {
         Repuesto* r = buscarRepuestoPorID(s, o.detalles[i].idRepuesto);
         string nomRep = r ? r->nombre : "Desconocido";
-        string codRep = r ? r->codigo : "N/A";
+        string codRep = r ? r->codigo : "Ninguno";
         float subtotal = o.detalles[i].cantidad * o.detalles[i].precioUnitario;
         cout << left << setw(8) << codRep << setw(18) << nomRep.substr(0,16) 
              << setw(6) << o.detalles[i].cantidad << setw(8) << o.detalles[i].precioUnitario 
@@ -379,15 +393,15 @@ void menuAbrirOrden(sysTaller &s) {
     int idV, idM, km;
     char fecha[11], falla[200];
     cout << "\n--- ABRIR ORDEN DE SERVICIO ---" << endl;
-    cout << "ID del vehículo: ";
+    cout << "ID del vehiculo: ";
     cin >> idV;
-    cout << "ID del mecánico: ";
+    cout << "ID del mecanico: ";
     cin >> idM;
     cout << "Fecha de apertura (YYYY-MM-DD): ";
     cin >> fecha;
     cout << "Kilometraje de ingreso: ";
     cin >> km;
-    cout << "Descripción de la falla: ";
+    cout << "Descripcion de la falla: ";
     cin >> ws;
     cin.getline(falla, 200);
 
@@ -395,7 +409,7 @@ void menuAbrirOrden(sysTaller &s) {
     if (nueva != nullptr) {
         cout << "¡Orden de servicio #" << nueva->id << " abierta exitosamente!" << endl;
     } else {
-        cout << "ERROR: No se pudo abrir la orden. Verifique si el vehículo/mecánico existen, si el vehículo ya tiene otra orden abierta, si el mecánico superó el límite de 3 órdenes o si el kilometraje es menor al registrado." << endl;
+        cout << "ERROR: No se pudo abrir la orden. Verifique si el vehículo/mecanico existen, si el vehículo ya tiene otra orden abierta, si el mecánico supero el limite de 3 ordenes o si el kilometraje es menor al registrado." << endl;
     }
 }
 
@@ -421,11 +435,11 @@ void menuQuitarRepuestoOrden(sysTaller &s) {
     cout << "\n--- QUITAR REPUESTO DE ORDEN ---" << endl;
     cout << "ID de la orden: ";
     cin >> idO;
-    cout << "ID del repuesto a quitar de la línea: ";
+    cout << "ID del repuesto a quitar de la linea: ";
     cin >> idR;
 
     if (quitarRepuestoDeOrden(s, idO, idR)) {
-        cout << "¡Línea de repuesto removida y stock devuelto al inventario!" << endl;
+        cout << "¡Linea de repuesto removida y stock devuelto al inventario!" << endl;
     } else {
         cout << "ERROR: Orden no abierta o repuesto no encontrado en la orden." << endl;
     }
@@ -444,13 +458,13 @@ void menuCerrarOrden(sysTaller &s) {
     cin >> mano;
 
     char conf;
-    cout << "¿Desea cerrar esta orden? (Ya no se podrá modificar) (S/N): ";
+    cout << "¿Desea cerrar esta orden? (Ya no se podra modificar) (S/N): ";
     cin >> conf;
     if (conf == 'S' || conf == 's') {
         if (cerrarOrdenServicio(s, idO, fecha, mano)) {
             cout << "¡Orden cerrada exitosamente!" << endl;
         } else {
-            cout << "ERROR: Orden no encontrada, ya no está abierta o datos de mano de obra inválidos." << endl;
+            cout << "ERROR: Orden no encontrada, ya no esta abierta o datos de mano de obra invalidos." << endl;
         }
     }
 }
@@ -462,13 +476,13 @@ void menuAnularOrden(sysTaller &s) {
     cin >> idO;
 
     char conf;
-    cout << "¿Confirma la anulación? (Los repuestos volverán al inventario) (S/N): ";
+    cout << "¿Confirma la anulacion? (Los repuestos volveran al inventario) (S/N): ";
     cin >> conf;
     if (conf == 'S' || conf == 's') {
         if (anularOrdenServicio(s, idO)) {
             cout << "¡Orden anulada y stock devuelto al inventario!" << endl;
         } else {
-            cout << "ERROR: Orden no encontrada o estado inválido para anular." << endl;
+            cout << "ERROR: Orden no encontrada o estado invalido para anular." << endl;
         }
     }
 }
@@ -486,9 +500,9 @@ void menuVerDetalleOrden(sysTaller &s) {
 }
 
 void menuOrdenes(sysTaller &s) {
-    int op;
+    int opcion;
     do {
-        cout << "\n=== ÓRDENES DE SERVICIO ===" << endl;
+        cout << "\n=== ORDENES DE SERVICIO ===" << endl;
         cout << "1. Abrir orden" << endl;
         cout << "2. Agregar repuesto a orden" << endl;
         cout << "3. Quitar repuesto de orden" << endl;
@@ -496,9 +510,9 @@ void menuOrdenes(sysTaller &s) {
         cout << "5. Anular orden" << endl;
         cout << "6. Ver detalle de orden" << endl;
         cout << "0. Volver" << endl;
-        cout << "Seleccione opción: ";
-        cin >> op;
-        switch(op) {
+        cout << "Seleccione opcion: ";
+        cin >> opcion;
+        switch(opcion) {
             case 1: menuAbrirOrden(s); break;
             case 2: menuAgregarRepuestoOrden(s); break;
             case 3: menuQuitarRepuestoOrden(s); break;
@@ -506,7 +520,7 @@ void menuOrdenes(sysTaller &s) {
             case 5: menuAnularOrden(s); break;
             case 6: menuVerDetalleOrden(s); break;
         }
-    } while(op != 0);
+    } while(opcion != 0);
 }
 
 int main() {
@@ -517,13 +531,13 @@ int main() {
     int opcion;
     do {
         cout << "\n========================================" << endl;
-        cout << "     SISTEMA DE GESTIÓN DE TALLER       " << endl;
+        cout << "     SISTEMA DE GESTION DE TALLER       " << endl;
         cout << "     Taller: " << miTaller.taller.nombre << endl;
         cout << "========================================" << endl;
-        cout << "1. Gestión de Vehículos" << endl;
-        cout << "2. Gestión de Mecánicos" << endl;
+        cout << "1. Gestión de Vehiculos" << endl;
+        cout << "2. Gestión de Mecanicos" << endl;
         cout << "3. Inventario de Repuestos" << endl;
-        cout << "4. Órdenes de Servicio" << endl;
+        cout << "4. Ordenes de Servicio" << endl;
         cout << "0. Salir" << endl;
         cout << "Seleccione una opción: ";
         cin >> opcion;
@@ -535,7 +549,7 @@ int main() {
             case 4: menuOrdenes(miTaller); break;
             case 0: {
                 char conf;
-                cout << "¿Está seguro de salir? (Se perderán los datos en memoria) (S/N): ";
+                cout << "¿Esta seguro de salir? (Se perderán los datos en memoria) (S/N): ";
                 cin >> conf;
                 if (conf != 'S' && conf != 's') {
                     opcion = -1; // Evita que salga si cancela
@@ -543,12 +557,12 @@ int main() {
                 break;
             }
             default:
-                cout << "Opción inválida. Intente nuevamente." << endl;
+                cout << "Opcion invalida. Intente nuevamente." << endl;
         }
     } while (opcion != 0);
 
     liberarSistema(miTaller);
-    cout << "\nMemoria liberada exitosamente. ¡Programa finalizado con éxito!" << endl;
+    cout << "\nMemoria liberada exitosamente. ¡Programa finalizado con exito!" << endl;
 
     return 0;
 }
