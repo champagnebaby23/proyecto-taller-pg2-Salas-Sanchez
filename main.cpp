@@ -338,6 +338,26 @@ void menuListarRepuestos(sysTaller &s) {
     delete[] lista;
 }
 
+void menuEliminarRepuesto(sysTaller &s) {
+    int id;
+    cout << "\n--- ELIMINAR REPUESTO ---" << endl;
+    cout << "Ingrese el ID del repuesto a eliminar: ";
+    cin >> id;
+
+    char conf;
+    cout << "¿Está seguro de eliminar físicamente este repuesto? (S/N): ";
+    cin >> conf;
+    if (conf == 'S' || conf == 's') {
+        if (eliminarRepuesto(s, id)) {
+            cout << "¡Repuesto eliminado exitosamente!" << endl;
+        } else {
+            cout << "ERROR: No se pudo eliminar. El repuesto no existe o ya fue usado en una orden de servicio." << endl;
+        }
+    } else {
+        cout << "Operación cancelada." << endl;
+    }
+}
+
 void menuRepuestos(sysTaller &s) {
     int opcion;
     do {
@@ -346,6 +366,7 @@ void menuRepuestos(sysTaller &s) {
         cout << "2. Registrar entrada de mercancia" << endl;
         cout << "3. Cambiar precio" << endl;
         cout << "4. Listar repuestos" << endl;
+        cout << "5. Eliminar repuesto" << endl;
         cout << "0. Volver" << endl;
         cout << "Seleccione opcion: ";
         cin >> opcion;
@@ -354,6 +375,7 @@ void menuRepuestos(sysTaller &s) {
             case 2: menuEntradaMercancia(s); break;
             case 3: menuCambiarPrecio(s); break;
             case 4: menuListarRepuestos(s); break;
+            case 5: menuEliminarRepuesto(s); break;
         }
     } while(opcion != 0);
 }

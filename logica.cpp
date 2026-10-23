@@ -34,19 +34,19 @@ void inicializarSistema(sysTaller &s, const char* nombre, const char* rif, const
 // Todos los arreglos arrancan con capacidad de 4 espacios en RAM
 // Se usa new para alojar los datos en memoria dinamica
     s.capacidadVehiculos = 4;
-    s.numVehiculos = 4;
+    s.numVehiculos = 0;
     s.vehiculos = new Vehiculo[s.capacidadVehiculos];
 
     s.capacidadMecanicos = 4;
-    s.numMecanicos = 4;
+    s.numMecanicos = 0;
     s.mecanicos = new Mecanico[s.capacidadMecanicos];
 
     s.capacidadRepuestos = 4;
-    s.numRepuestos = 4;
+    s.numRepuestos = 0;
     s.repuestos = new Repuesto[s.capacidadRepuestos];
 
     s.capacidadOrdenes = 4;
-    s.numOrdenes = 4;
+    s.numOrdenes = 0;
     s.ordenes = new ordenServicio[s.capacidadOrdenes];
 
     // ID autoincremental para garantizar integridad referencial 
@@ -196,6 +196,7 @@ bool eliminarVehiculo(sysTaller &s, int id) {
 // MODULO MECANICOS
 // =================
 Mecanico* registrarMecanico(sysTaller &s, Mecanico datos) {
+    // 1. Validaciones de negocio
     if (buscarMecanicoPorCedula(s, datos.cedula) != nullptr) {
         return nullptr;
     }
@@ -221,10 +222,14 @@ Mecanico* registrarMecanico(sysTaller &s, Mecanico datos) {
         s.capacidadMecanicos = nuevaCapacidad;
     }
 
-    datos.id = s.siguienteIdMecanico++;
-    s.mecanicos[s.numMecanicos] = datos;
+    datos.id = s.siguienteIdMecanico++; 
+    
+    int indiceActual = s.numMecanicos;  
+    s.mecanicos[indiceActual] = datos;  
+    
+    s.numMecanicos++;                   
 
-    return &s.mecanicos[s.numMecanicos++];
+    return &s.mecanicos[indiceActual];
 }
 
 bool especialidadValida(const char* esp) {
@@ -238,6 +243,15 @@ bool especialidadValida(const char* esp) {
 Mecanico* buscarMecanicoPorID(sysTaller &s, int id) {
     for (int i = 0; i < s.numMecanicos; i++) {
         if (s.mecanicos[i].id == id) {
+            return &s.mecanicos[i];
+        }
+    }
+    return nullptr;
+}
+
+Mecanico* buscarMecanicoPorCedula(sysTaller &s, const char* cedula) {
+    for (int i = 0; i < s.numMecanicos; i++) {
+        if (strcmp(s.mecanicos[i].cedula, cedula) == 0) {
             return &s.mecanicos[i];
         }
     }
@@ -259,6 +273,7 @@ Mecanico** listarMecanicos(sysTaller &s, int &cantidad) {
 // MODULO REPUESTOS
 // =================
 Repuesto* registrarRepuesto(sysTaller &s, Repuesto datos) {
+
     if (buscarRepuestoPorCodigo(s, datos.codigo) != nullptr) {
         return nullptr;
     }
@@ -282,10 +297,14 @@ Repuesto* registrarRepuesto(sysTaller &s, Repuesto datos) {
         s.capacidadRepuestos = nuevaCapacidad;
     }
 
-    datos.id = s.siguienteIdRepuesto++;
-    s.repuestos[s.numRepuestos] = datos;
+    datos.id = s.siguienteIdRepuesto++; 
+    
+    int indiceActual = s.numRepuestos;  
+    s.repuestos[indiceActual] = datos;  
+    
+    s.numRepuestos++; 
 
-    return &s.repuestos[s.numRepuestos++];
+    return &s.repuestos[indiceActual];
 }
 
 Repuesto* buscarRepuestoPorID(sysTaller &s, int id) {
@@ -336,8 +355,6 @@ bool cambiarPrecioRepuesto(sysTaller &s, int idRepuesto, float nuevoPrecio) {
 }
 
 bool eliminarRepuesto(sysTaller &s, int id) {
-    // Se recorren todas las ordenes y sus arreglos anidados de detalles
-    // Si el repuesto esta asociado a cualquier orden (abierta, cerrada o anulada), se bloquea la eliminacion.
     for (int i = 0; i < s.numOrdenes; i++) {
         for (int j = 0; j < s.ordenes[i].numDetalles; j++) {
             if (s.ordenes[i].detalles[j].idRepuesto == id) {
@@ -346,7 +363,6 @@ bool eliminarRepuesto(sysTaller &s, int id) {
         }
     }
 
-    // 2. Buscar la posición  del repuesto en el arreglo dinámico
     int index = -1;
     for (int i = 0; i < s.numRepuestos; i++) {
         if (s.repuestos[i].id == id) {
@@ -355,15 +371,12 @@ bool eliminarRepuesto(sysTaller &s, int id) {
         }
     }
     
-    // Si no se encontro el ID, se retorna falso
     if (index == -1) return false;
 
-    // Se mueven todos los elementos un espacio hacia la izquierda
     for (int i = index; i < s.numRepuestos - 1; i++) {
         s.repuestos[i] = s.repuestos[i + 1];
     }
     
-    // 4. Se reduce el contador logico del arreglo
     s.numRepuestos--;
     return true;
 }

@@ -1,0 +1,912 @@
+
+========================================
+     SISTEMA DE GESTION DE TALLER       
+     Taller: Taller Mecánico URDANETA
+========================================
+1. Gestión de Vehiculos
+2. Gestión de Mecanicos
+3. Inventario de Repuestos
+4. Ordenes de Servicio
+0. Salir
+Seleccione una opción: 
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+--- REGISTRAR NUEVO VEHÍCULO ---
+Placa (alfanumérica, 6-7 caracteres): Marca: Modelo: Año de fabricación (1950-2027): Kilometraje actual: Nombre completo del propietario: Cédula o RIF del propietario: Teléfono del propietario: Fecha de registro (YYYY-MM-DD): ¿Desea guardar este vehículo? (S/N): ¡Vehículo registrado exitosamente con ID #1!
+
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+--- REGISTRAR NUEVO VEHÍCULO ---
+Placa (alfanumérica, 6-7 caracteres): Marca: Modelo: Año de fabricación (1950-2027): Kilometraje actual: Nombre completo del propietario: Cédula o RIF del propietario: Teléfono del propietario: Fecha de registro (YYYY-MM-DD): ¿Desea guardar este vehículo? (S/N): ¡Vehículo registrado exitosamente con ID #2!
+
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+--- REGISTRAR NUEVO VEHÍCULO ---
+Placa (alfanumérica, 6-7 caracteres): Marca: Modelo: Año de fabricación (1950-2027): Kilometraje actual: Nombre completo del propietario: Cédula o RIF del propietario: Teléfono del propietario: Fecha de registro (YYYY-MM-DD): ¿Desea guardar este vehículo? (S/N): ¡Vehículo registrado exitosamente con ID #3!
+
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+--- BUSCAR VEHÍCULO ---
+1. Buscar por ID
+2. Buscar por Placa exacta
+3. Buscar por Nombre de Propietario (parcial)
+Seleccione una opción: Ingrese el nombre o parte del propietario: 
+Se encontraron 2 vehículo(s):
+----------------------------------------
+ID          : 1
+Placa       : AB123CD
+Vehículo    : Toyota Corolla (2015)
+Kilometraje : 45000 km
+Propietario : Maria Gonzalez (Cédula: V-111)
+Teléfono    : 0414-123
+Registro    : 2026-10-12
+----------------------------------------
+----------------------------------------
+ID          : 2
+Placa       : XY987ZW
+Vehículo    : Chevrolet Aveo (2009)
+Kilometraje : 128300 km
+Propietario : Maria Gonzalez (Cédula: V-111)
+Teléfono    : 0414-123
+Registro    : 2026-10-12
+----------------------------------------
+
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+--- BUSCAR VEHÍCULO ---
+1. Buscar por ID
+2. Buscar por Placa exacta
+3. Buscar por Nombre de Propietario (parcial)
+Seleccione una opción: Ingrese la placa exacta: ----------------------------------------
+ID          : 2
+Placa       : XY987ZW
+Vehículo    : Chevrolet Aveo (2009)
+Kilometraje : 128300 km
+Propietario : Maria Gonzalez (Cédula: V-111)
+Teléfono    : 0414-123
+Registro    : 2026-10-12
+----------------------------------------
+
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+--- LISTADO GENERAL DE VEHÍCULOS ---
+----------------------------------------
+ID          : 1
+Placa       : AB123CD
+Vehículo    : Toyota Corolla (2015)
+Kilometraje : 45000 km
+Propietario : Maria Gonzalez (Cédula: V-111)
+Teléfono    : 0414-123
+Registro    : 2026-10-12
+----------------------------------------
+----------------------------------------
+ID          : 2
+Placa       : XY987ZW
+Vehículo    : Chevrolet Aveo (2009)
+Kilometraje : 128300 km
+Propietario : Maria Gonzalez (Cédula: V-111)
+Teléfono    : 0414-123
+Registro    : 2026-10-12
+----------------------------------------
+----------------------------------------
+ID          : 3
+Placa       : ZZ999XX
+Vehículo    : Ford Fiesta (2010)
+Kilometraje : 80000 km
+Propietario : Pedro Perez (Cédula: V-222)
+Teléfono    : 0412-123
+Registro    : 2026-10-12
+----------------------------------------
+Total de vehículos: 3
+
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+--- REGISTRAR NUEVO VEHÍCULO ---
+Placa (alfanumérica, 6-7 caracteres): Marca: Modelo: Año de fabricación (1950-2027): Kilometraje actual: Nombre completo del propietario: Cédula o RIF del propietario: Teléfono del propietario: Fecha de registro (YYYY-MM-DD): ¿Desea guardar este vehículo? (S/N): Registro cancelado.
+
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+--- REGISTRAR NUEVO VEHÍCULO ---
+Placa (alfanumérica, 6-7 caracteres): Marca: Modelo: Año de fabricación (1950-2027): Kilometraje actual: Nombre completo del propietario: Cédula o RIF del propietario: Teléfono del propietario: Fecha de registro (YYYY-MM-DD): ¿Desea guardar este vehículo? (S/N): ¡Vehículo registrado exitosamente con ID #4!
+
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+--- REGISTRAR NUEVO VEHÍCULO ---
+Placa (alfanumérica, 6-7 caracteres): Marca: Modelo: Año de fabricación (1950-2027): Kilometraje actual: Nombre completo del propietario: Cédula o RIF del propietario: Teléfono del propietario: Fecha de registro (YYYY-MM-DD): ¿Desea guardar este vehículo? (S/N): ¡Vehículo registrado exitosamente con ID #5!
+
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+========================================
+     SISTEMA DE GESTION DE TALLER       
+     Taller: Taller Mecánico URDANETA
+========================================
+1. Gestión de Vehiculos
+2. Gestión de Mecanicos
+3. Inventario de Repuestos
+4. Ordenes de Servicio
+0. Salir
+Seleccione una opción: 
+=== GESTION DE MECANICOS ===
+1. Registrar mecanico
+2. Listar mecanicos
+0. Volver
+Seleccione opcion: 
+--- REGISTRAR MECÁNICO ---
+Nombre completo: Cédula: Especialidad (MOTOR, FRENOS, ELECTRICIDAD, SUSPENSION, GENERAL): Fecha de ingreso (YYYY-MM-DD): ¿Guardar mecánico? (S/N): ¡Mecánico registrado con ID #1!
+
+=== GESTION DE MECANICOS ===
+1. Registrar mecanico
+2. Listar mecanicos
+0. Volver
+Seleccione opcion: 
+--- REGISTRAR MECÁNICO ---
+Nombre completo: Cédula: Especialidad (MOTOR, FRENOS, ELECTRICIDAD, SUSPENSION, GENERAL): Fecha de ingreso (YYYY-MM-DD): ¿Guardar mecánico? (S/N): ¡Mecánico registrado con ID #2!
+
+=== GESTION DE MECANICOS ===
+1. Registrar mecanico
+2. Listar mecanicos
+0. Volver
+Seleccione opcion: 
+========================================
+     SISTEMA DE GESTION DE TALLER       
+     Taller: Taller Mecánico URDANETA
+========================================
+1. Gestión de Vehiculos
+2. Gestión de Mecanicos
+3. Inventario de Repuestos
+4. Ordenes de Servicio
+0. Salir
+Seleccione una opción: 
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+--- REGISTRAR REPUESTO ---
+Codigo unico: Nombre del repuesto: Marca: Precio unitario: Stock inicial: Stock minimo de alerta: Fecha registro (YYYY-MM-DD): ¿Guardar repuesto? (S/N): ¡Repuesto registrado con ID #1!
+
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+--- REGISTRAR REPUESTO ---
+Codigo unico: Nombre del repuesto: Marca: Precio unitario: Stock inicial: Stock minimo de alerta: Fecha registro (YYYY-MM-DD): ¿Guardar repuesto? (S/N): ¡Repuesto registrado con ID #2!
+
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+--- REGISTRAR REPUESTO ---
+Codigo unico: Nombre del repuesto: Marca: Precio unitario: Stock inicial: Stock minimo de alerta: Fecha registro (YYYY-MM-DD): ¿Guardar repuesto? (S/N): ¡Repuesto registrado con ID #3!
+
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+--- REGISTRAR REPUESTO ---
+Codigo unico: Nombre del repuesto: Marca: Precio unitario: Stock inicial: Stock minimo de alerta: Fecha registro (YYYY-MM-DD): ¿Guardar repuesto? (S/N): ¡Repuesto registrado con ID #4!
+
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+--- INVENTARIO DE REPUESTOS ---
+----------------------------------------
+ID           : 1
+Codigo       : REP-001
+Nombre       : Pastillas (Bosch)
+Precio       : $25
+Stock        : 10 (Mínimo: 5)
+----------------------------------------
+----------------------------------------
+ID           : 2
+Codigo       : REP-002
+Nombre       : Liquido DOT4 (Shell)
+Precio       : $12.5
+Stock        : 2 (Mínimo: 2)
+ESTADO       : ** BAJO STOCK **
+----------------------------------------
+----------------------------------------
+ID           : 3
+Codigo       : REP-003
+Nombre       : Filtro (Wix)
+Precio       : $5
+Stock        : 20 (Mínimo: 5)
+----------------------------------------
+----------------------------------------
+ID           : 4
+Codigo       : REP-004
+Nombre       : Bujias (NGK)
+Precio       : $4
+Stock        : 16 (Mínimo: 4)
+----------------------------------------
+
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+--- ENTRADA DE MERCANCIA ---
+ID del repuesto: Cantidad a sumar al stock: ¡Stock actualizado con exito!
+
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+--- INVENTARIO DE REPUESTOS ---
+----------------------------------------
+ID           : 1
+Codigo       : REP-001
+Nombre       : Pastillas (Bosch)
+Precio       : $25
+Stock        : 10 (Mínimo: 5)
+----------------------------------------
+----------------------------------------
+ID           : 2
+Codigo       : REP-002
+Nombre       : Liquido DOT4 (Shell)
+Precio       : $12.5
+Stock        : 7 (Mínimo: 2)
+----------------------------------------
+----------------------------------------
+ID           : 3
+Codigo       : REP-003
+Nombre       : Filtro (Wix)
+Precio       : $5
+Stock        : 20 (Mínimo: 5)
+----------------------------------------
+----------------------------------------
+ID           : 4
+Codigo       : REP-004
+Nombre       : Bujias (NGK)
+Precio       : $4
+Stock        : 16 (Mínimo: 4)
+----------------------------------------
+
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+========================================
+     SISTEMA DE GESTION DE TALLER       
+     Taller: Taller Mecánico URDANETA
+========================================
+1. Gestión de Vehiculos
+2. Gestión de Mecanicos
+3. Inventario de Repuestos
+4. Ordenes de Servicio
+0. Salir
+Seleccione una opción: 
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- ABRIR ORDEN DE SERVICIO ---
+ID del vehiculo: ID del mecanico: Fecha de apertura (YYYY-MM-DD): Kilometraje de ingreso: Descripcion de la falla: ¡Orden de servicio #1 abierta exitosamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- AGREGAR REPUESTO A ORDEN ---
+ID de la orden: ID del repuesto: Cantidad: ¡Repuesto agregado a la orden correctamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- AGREGAR REPUESTO A ORDEN ---
+ID de la orden: ID del repuesto: Cantidad: ¡Repuesto agregado a la orden correctamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- AGREGAR REPUESTO A ORDEN ---
+ID de la orden: ID del repuesto: Cantidad: ¡Repuesto agregado a la orden correctamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- QUITAR REPUESTO DE ORDEN ---
+ID de la orden: ID del repuesto a quitar de la linea: ¡Linea de repuesto removida y stock devuelto al inventario!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- CERRAR ORDEN DE SERVICIO ---
+ID de la orden: Fecha de cierre (YYYY-MM-DD): Costo de mano de obra: ¿Desea cerrar esta orden? (Ya no se podra modificar) (S/N): ¡Orden cerrada exitosamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: Ingrese el ID de la orden: 
+========================================
+         ORDEN DE SERVICIO #1
+========================================
+Estado     : CERRADA
+Apertura   : 2026-10-12 | Cierre: 2026-10-14
+Vehiculo   : AB123CD - Toyota Corolla (45000 km)
+Mecanico   : Jose Perez (FRENOS)
+Falla      : Ruido
+----------------------------------------
+Codigo  Repuesto          Cant  P.Unit  Total   
+----------------------------------------
+REP-001 Pastillas         3     25      75      
+----------------------------------------
+Mano de obra: $40
+TOTAL       : $115
+========================================
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+========================================
+     SISTEMA DE GESTION DE TALLER       
+     Taller: Taller Mecánico URDANETA
+========================================
+1. Gestión de Vehiculos
+2. Gestión de Mecanicos
+3. Inventario de Repuestos
+4. Ordenes de Servicio
+0. Salir
+Seleccione una opción: 
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+--- CAMBIAR PRECIO DE REPUESTO ---
+ID del repuesto: Nuevo precio unitario: ¡Precio actualizado con exito!
+
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+========================================
+     SISTEMA DE GESTION DE TALLER       
+     Taller: Taller Mecánico URDANETA
+========================================
+1. Gestión de Vehiculos
+2. Gestión de Mecanicos
+3. Inventario de Repuestos
+4. Ordenes de Servicio
+0. Salir
+Seleccione una opción: 
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- ABRIR ORDEN DE SERVICIO ---
+ID del vehiculo: ID del mecanico: Fecha de apertura (YYYY-MM-DD): Kilometraje de ingreso: Descripcion de la falla: ¡Orden de servicio #2 abierta exitosamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- AGREGAR REPUESTO A ORDEN ---
+ID de la orden: ID del repuesto: Cantidad: ¡Repuesto agregado a la orden correctamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+========================================
+     SISTEMA DE GESTION DE TALLER       
+     Taller: Taller Mecánico URDANETA
+========================================
+1. Gestión de Vehiculos
+2. Gestión de Mecanicos
+3. Inventario de Repuestos
+4. Ordenes de Servicio
+0. Salir
+Seleccione una opción: 
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- ANULAR ORDEN DE SERVICIO ---
+ID de la orden a anular: ¿Confirma la anulacion? (Los repuestos volveran al inventario) (S/N): ¡Orden anulada y stock devuelto al inventario!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: Ingrese el ID de la orden: 
+========================================
+         ORDEN DE SERVICIO #2
+========================================
+Estado     : ANULADA
+Apertura   : 2026-10-15 | Cierre: N/A
+Vehiculo   : XY987ZW - Chevrolet Aveo (128300 km)
+Mecanico   : Luis Salas (MOTOR)
+Falla      : Falla
+----------------------------------------
+Codigo  Repuesto          Cant  P.Unit  Total   
+----------------------------------------
+REP-001 Pastillas         2     30      60      
+----------------------------------------
+Mano de obra: $0
+TOTAL       : $60
+========================================
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+========================================
+     SISTEMA DE GESTION DE TALLER       
+     Taller: Taller Mecánico URDANETA
+========================================
+1. Gestión de Vehiculos
+2. Gestión de Mecanicos
+3. Inventario de Repuestos
+4. Ordenes de Servicio
+0. Salir
+Seleccione una opción: 
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+--- INVENTARIO DE REPUESTOS ---
+----------------------------------------
+ID           : 1
+Codigo       : REP-001
+Nombre       : Pastillas (Bosch)
+Precio       : $30
+Stock        : 7 (Mínimo: 5)
+----------------------------------------
+----------------------------------------
+ID           : 2
+Codigo       : REP-002
+Nombre       : Liquido DOT4 (Shell)
+Precio       : $12.5
+Stock        : 7 (Mínimo: 2)
+----------------------------------------
+----------------------------------------
+ID           : 3
+Codigo       : REP-003
+Nombre       : Filtro (Wix)
+Precio       : $5
+Stock        : 20 (Mínimo: 5)
+----------------------------------------
+----------------------------------------
+ID           : 4
+Codigo       : REP-004
+Nombre       : Bujias (NGK)
+Precio       : $4
+Stock        : 16 (Mínimo: 4)
+----------------------------------------
+
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+========================================
+     SISTEMA DE GESTION DE TALLER       
+     Taller: Taller Mecánico URDANETA
+========================================
+1. Gestión de Vehiculos
+2. Gestión de Mecanicos
+3. Inventario de Repuestos
+4. Ordenes de Servicio
+0. Salir
+Seleccione una opción: 
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+--- REGISTRAR NUEVO VEHÍCULO ---
+Placa (alfanumérica, 6-7 caracteres): Marca: Modelo: Año de fabricación (1950-2027): Kilometraje actual: Nombre completo del propietario: Cédula o RIF del propietario: Teléfono del propietario: Fecha de registro (YYYY-MM-DD): ¿Desea guardar este vehículo? (S/N): ERROR: La placa 'XY987ZW' ya está registrada o los datos son inválidos (año/km).
+
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+========================================
+     SISTEMA DE GESTION DE TALLER       
+     Taller: Taller Mecánico URDANETA
+========================================
+1. Gestión de Vehiculos
+2. Gestión de Mecanicos
+3. Inventario de Repuestos
+4. Ordenes de Servicio
+0. Salir
+Seleccione una opción: 
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- ABRIR ORDEN DE SERVICIO ---
+ID del vehiculo: ID del mecanico: Fecha de apertura (YYYY-MM-DD): Kilometraje de ingreso: Descripcion de la falla: ¡Orden de servicio #3 abierta exitosamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- ABRIR ORDEN DE SERVICIO ---
+ID del vehiculo: ID del mecanico: Fecha de apertura (YYYY-MM-DD): Kilometraje de ingreso: Descripcion de la falla: ERROR: No se pudo abrir la orden. Verifique si el vehículo/mecanico existen, si el vehículo ya tiene otra orden abierta, si el mecánico supero el limite de 3 ordenes o si el kilometraje es menor al registrado.
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- ABRIR ORDEN DE SERVICIO ---
+ID del vehiculo: ID del mecanico: Fecha de apertura (YYYY-MM-DD): Kilometraje de ingreso: Descripcion de la falla: ¡Orden de servicio #4 abierta exitosamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- ABRIR ORDEN DE SERVICIO ---
+ID del vehiculo: ID del mecanico: Fecha de apertura (YYYY-MM-DD): Kilometraje de ingreso: Descripcion de la falla: ERROR: No se pudo abrir la orden. Verifique si el vehículo/mecanico existen, si el vehículo ya tiene otra orden abierta, si el mecánico supero el limite de 3 ordenes o si el kilometraje es menor al registrado.
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- AGREGAR REPUESTO A ORDEN ---
+ID de la orden: ID del repuesto: Cantidad: ERROR: Orden no abierta, repuesto no encontrado o stock insuficiente.
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- CERRAR ORDEN DE SERVICIO ---
+ID de la orden: Fecha de cierre (YYYY-MM-DD): Costo de mano de obra: ¿Desea cerrar esta orden? (Ya no se podra modificar) (S/N): ERROR: Orden no encontrada, ya no esta abierta o datos de mano de obra invalidos.
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- ABRIR ORDEN DE SERVICIO ---
+ID del vehiculo: ID del mecanico: Fecha de apertura (YYYY-MM-DD): Kilometraje de ingreso: Descripcion de la falla: ¡Orden de servicio #5 abierta exitosamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- AGREGAR REPUESTO A ORDEN ---
+ID de la orden: ID del repuesto: Cantidad: ¡Repuesto agregado a la orden correctamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- AGREGAR REPUESTO A ORDEN ---
+ID de la orden: ID del repuesto: Cantidad: ¡Repuesto agregado a la orden correctamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+--- AGREGAR REPUESTO A ORDEN ---
+ID de la orden: ID del repuesto: Cantidad: ¡Repuesto agregado a la orden correctamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: Ingrese el ID de la orden: 
+========================================
+         ORDEN DE SERVICIO #4
+========================================
+Estado     : ABIERTA
+Apertura   : 2026-10-16 | Cierre: N/A
+Vehiculo   : AB123CD - Toyota Corolla (45000 km)
+Mecanico   : Jose Perez (FRENOS)
+Falla      : Rechazado
+----------------------------------------
+Codigo  Repuesto          Cant  P.Unit  Total   
+----------------------------------------
+REP-001 Pastillas         1     30      30      
+REP-002 Liquido DOT4      1     12.5    12.5    
+REP-003 Filtro            1     5       5       
+----------------------------------------
+Mano de obra: $0
+TOTAL       : $47.5
+========================================
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+0. Volver
+Seleccione opcion: 
+========================================
+     SISTEMA DE GESTION DE TALLER       
+     Taller: Taller Mecánico URDANETA
+========================================
+1. Gestión de Vehiculos
+2. Gestión de Mecanicos
+3. Inventario de Repuestos
+4. Ordenes de Servicio
+0. Salir
+Seleccione una opción: 
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+--- ELIMINAR VEHÍCULO ---
+Ingrese el ID del vehículo a eliminar: ¿Está seguro de eliminar físicamente este vehículo? (S/N): ERROR: No se pudo eliminar. El vehículo no existe o tiene órdenes de servicio asociadas.
+
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+========================================
+     SISTEMA DE GESTION DE TALLER       
+     Taller: Taller Mecánico URDANETA
+========================================
+1. Gestión de Vehiculos
+2. Gestión de Mecanicos
+3. Inventario de Repuestos
+4. Ordenes de Servicio
+0. Salir
+Seleccione una opción: 
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+--- ELIMINAR REPUESTO ---
+Ingrese el ID del repuesto a eliminar: ¿Está seguro de eliminar físicamente este repuesto? (S/N): ERROR: No se pudo eliminar. El repuesto no existe o ya fue usado en una orden de servicio.
+
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Listar repuestos
+5. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+========================================
+     SISTEMA DE GESTION DE TALLER       
+     Taller: Taller Mecánico URDANETA
+========================================
+1. Gestión de Vehiculos
+2. Gestión de Mecanicos
+3. Inventario de Repuestos
+4. Ordenes de Servicio
+0. Salir
+Seleccione una opción: ¿Esta seguro de salir? (Se perderán los datos en memoria) (S/N): 
+Memoria liberada exitosamente. ¡Programa finalizado con exito!
