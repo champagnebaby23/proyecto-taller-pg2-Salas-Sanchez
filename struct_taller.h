@@ -1,6 +1,9 @@
 #ifndef STRUCT_TALLER_H
 #define STRUCT_TALLER_H
 
+#include <string>
+using namespace std;
+
 // Estructura del taller (Informacion unica)
 struct Taller {
     char nombre[100]; // Nombre del establecimiento

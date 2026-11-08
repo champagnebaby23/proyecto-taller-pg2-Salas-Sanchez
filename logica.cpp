@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cstring>
 #include <cctype>
-
+#include <string>
 using namespace std;
 
 // FUNCIONES AUXILIARES
@@ -14,6 +14,97 @@ void aMinusculas(const char* origen, char* destino) {
         i++;
     }
     destino[i] = '\0';
+}
+
+void leerTextoNoVacio(const string &mensaje, char destino[], int tamMax) {
+    string entrada;
+    do {
+        cout << mensaje;
+        cin >> ws;
+        getline(cin, entrada);
+
+        if (entrada.empty()) {
+            cout << "Este campo no puede estar vacio, intente nuevamente" << endl;
+        } else if (entrada.length() >= (size_t)tamMax) {
+            cout << "El texto es demasiado largo, (maximo " << tamMax - 1 << " caracteres), intente nuevamente" << endl;
+            entrada = "";
+        }
+    } while (entrada.empty());
+
+    strcpy (destino, entrada.c_str());
+}
+
+int leerEnteroSeguro(const string& mensaje, int min, int max) {
+    int valor;
+    while (true) {
+        cout << mensaje;
+        cin >> valor;
+
+        // Si el usuario introdujo una letra o el valor esta fuera del rango permitido
+        if (cin.fail() || valor < min || valor > max) {
+            cout << "Entrada invalida, inserte un valor numerico " << endl;
+            cin.clear();
+            cin.ignore(10000, '\n');
+        } else {
+            cin.ignore(10000, '\n'); // Limpiar el ENTER pendiente
+            return valor; // Retorna valor validado
+        }
+    }
+}
+
+void leerFormatoFijo(const string& mensaje, char destino[], int longitudEsperada) {
+    string entrada;
+    do {
+        cout << mensaje;
+        cin >> ws;
+        getline(cin, entrada);
+        
+        if (entrada.length() != (size_t)longitudEsperada) {
+            cout << "[!] Formato invalido. Debe tener exactamente " << longitudEsperada << " caracteres (Ej: 2026-11-03).\n";
+        }
+    } while (entrada.length() != (size_t)longitudEsperada);
+
+    strcpy(destino, entrada.c_str());
+}
+
+bool esSoloDigitos(const string& str) {
+    if (str.empty()) return false;
+    for (char c : str) {
+        if (!isdigit(c)) { // Si encuentra algo que no sea un número (0-9)
+            return false;
+        }
+    }
+    return true;
+}
+
+void leerTelefonoSeguro(const string& mensaje, char destino[], int tamMax) {
+    string entrada;
+    bool valido = true;
+    do {
+        valido = true;
+        cout << mensaje;
+        cin >> ws;
+        getline(cin, entrada);
+        
+        if (entrada.empty()) {
+            cout << "[!] Este campo no puede estar vacio. Intente nuevamente.\n";
+            valido = false;
+        } else if (entrada.length() >= (size_t)tamMax) {
+            cout << "[!] El texto es demasiado largo. Intente nuevamente.\n";
+            valido = false;
+        } else {
+            // Verificamos que cada carácter sea un número o un guion '-'
+            for (char c : entrada) {
+                if (!isdigit(c) && c != '-') {
+                    cout << "[!] Error: El telefono solo debe contener numeros o guiones (-).\n";
+                    valido = false;
+                    break;
+                }
+            }
+        }
+    } while (!valido);
+
+    strcpy(destino, entrada.c_str());
 }
 
 // Implementa una busqueda insensible a mayusculas o minusculas 
@@ -163,6 +254,28 @@ Vehiculo** listarVehiculos(sysTaller &s, int &cantidad) {
         resultado[i] = &s.vehiculos[i];
     }
     return resultado;
+}
+
+bool actualizarVehiculo(sysTaller &s, int id, Vehiculo datos) {
+    // Buscamos si el vehículo existe
+    Vehiculo* v = buscarVehiculoPorID(s, id);
+    
+    // Retorna false si el ID no existe o algún dato numérico es inválido
+    if (v == nullptr) return false;
+    if (datos.anio < 1950 || datos.anio > 2027) return false;
+    if (strlen(datos.marca) == 0 || strlen(datos.modelo) == 0 || strlen(datos.nombrePropietario) == 0) return false;
+
+    // Actualizamos solo los campos permitidos según el enunciado
+    strcpy(v->marca, datos.marca);
+    strcpy(v->modelo, datos.modelo);
+    v->anio = datos.anio;
+    
+    strcpy(v->nombrePropietario, datos.nombrePropietario);
+    strcpy(v->cedulaPropietario, datos.cedulaPropietario);
+    strcpy(v->telefonoPropietario, datos.telefonoPropietario);
+
+    // El ID, la placa, el kilometraje y la fechaRegistro quedan intactos
+    return true;
 }
 
 // ====== FUNCION ACTUALIZAR VEHICULOS ====== 
@@ -316,15 +429,6 @@ Repuesto* buscarRepuestoPorID(sysTaller &s, int id) {
     return nullptr;
 }
 
-Repuesto* buscarRepuestoPorCodigo(sysTaller &s, const char* codigo) {
-    for (int i = 0; i < s.numRepuestos; i++) {
-        if (strcmp(s.repuestos[i].codigo, codigo) == 0) {
-            return &s.repuestos[i];
-        }
-    }
-    return nullptr;
-}
-
 bool registrarEntradaMercancia(sysTaller &s, int idRepuesto, int cantidadAdicional) {
     if (cantidadAdicional <= 0) return false;
     Repuesto* r = buscarRepuestoPorID(s, idRepuesto);
@@ -399,7 +503,7 @@ ordenServicio* abrirOrdenServicio(sysTaller &s, int idVehiculo, int idMecanico, 
     }
 
     int ordenesAbiertasMecanico = 0;
-    for (int i = 0; i < s.numOrdenes; i++) {
+    for (int i = 0; i < s.numOrdenes; i++) {    
         if (s.ordenes[i].idMecanico == idMecanico && strcmp(s.ordenes[i].estado, "ABIERTA") == 0) {
             ordenesAbiertasMecanico++;
         }
