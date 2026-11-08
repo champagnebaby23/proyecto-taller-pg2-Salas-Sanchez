@@ -86,17 +86,35 @@ void leerTextoSoloLetras(const string& mensaje, char destino[], int tamMax) {
 // Mismo funcionamiento
 void leerFormatoFijo(const string& mensaje, char destino[], int longitudEsperada) {
     string entrada;
-    do {
+    while (true) {
         cout << mensaje;
         cin >> ws;
         getline(cin, entrada);
 
-        if (entrada.length() != (size_t)longitudEsperada) {
-            cout << "[!] Formato invalido. Debe tener exactamente " << longitudEsperada << " caracteres (Ej: 2026-11-03).\n";
-        }
-    } while (entrada.length() != (size_t)longitudEsperada);
+        bool formatoValido = true;
 
-    strcpy(destino, entrada.c_str());
+        if (entrada.length() != (size_t)longitudEsperada) {
+            formatoValido = false;
+        } else {
+            for (int i = 0; i < longitudEsperada; i++) {
+                if ((i == 4 || i == 7) && entrada[i] == '-') {
+                    continue;
+                }
+                if (!isdigit(static_cast<unsigned char>(entrada[i]))) {
+                    formatoValido = false;
+                    break;
+                }
+            }
+        }
+
+        if (formatoValido) {
+            strcpy(destino, entrada.c_str());
+            return;
+        }
+
+        cout << "[!] Formato invalido. Debe tener exactamente " << longitudEsperada
+             << " caracteres y solo numeros con guiones en la posicion correcta (Ej: 2026-11-03).\n";
+    }
 }
 
 bool esSoloDigitos(const string& str) {
