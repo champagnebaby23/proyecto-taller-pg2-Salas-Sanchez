@@ -23,9 +23,9 @@ void leerTextoNoVacio(const string &mensaje, char destino[], int tamMax) {
         cin >> ws;
         getline(cin, entrada);
 
-        if (entrada.empty()) {
+        if (entrada.empty()) { // Verifica que lo que se introducio no sea espacio en blanco
             cout << "Este campo no puede estar vacio, intente nuevamente" << endl;
-        } else if (entrada.length() >= (size_t)tamMax) {
+        } else if (entrada.length() >= (size_t)tamMax) { // Si el texto se extiende hasta un tama;o asignado, salta un mensaje de error
             cout << "El texto es demasiado largo, (maximo " << tamMax - 1 << " caracteres), intente nuevamente" << endl;
             entrada = "";
         }
@@ -52,13 +52,14 @@ int leerEnteroSeguro(const string& mensaje, int min, int max) {
     }
 }
 
+// Mismo funcionamiento
 void leerFormatoFijo(const string& mensaje, char destino[], int longitudEsperada) {
     string entrada;
     do {
         cout << mensaje;
         cin >> ws;
         getline(cin, entrada);
-        
+
         if (entrada.length() != (size_t)longitudEsperada) {
             cout << "[!] Formato invalido. Debe tener exactamente " << longitudEsperada << " caracteres (Ej: 2026-11-03).\n";
         }
@@ -93,7 +94,7 @@ void leerTelefonoSeguro(const string& mensaje, char destino[], int tamMax) {
             cout << "[!] El texto es demasiado largo. Intente nuevamente.\n";
             valido = false;
         } else {
-            // Verificamos que cada carácter sea un número o un guion '-'
+            // Verificamos que cada carácter sea un número o un guion -
             for (char c : entrada) {
                 if (!isdigit(c) && c != '-') {
                     cout << "[!] Error: El telefono solo debe contener numeros o guiones (-).\n";
@@ -105,6 +106,23 @@ void leerTelefonoSeguro(const string& mensaje, char destino[], int tamMax) {
     } while (!valido);
 
     strcpy(destino, entrada.c_str());
+}
+
+float leerFlotanteSeguro(const string& mensaje, float min, float max) {
+    float valor;
+    while (true) {
+        cout << mensaje;
+        cin >> valor;
+
+        if (cin.fail() || valor < min || valor > max) {
+            cout << "Entrada inválida, inserte un valor numérico válido." << endl;
+            cin.clear();
+            cin.ignore(10000, '\n');
+        } else {
+            cin.ignore(10000, '\n'); // Limpiar el ENTER pendiente
+            return valor;
+        }
+    }
 }
 
 // Implementa una busqueda insensible a mayusculas o minusculas 

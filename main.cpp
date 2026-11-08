@@ -76,32 +76,31 @@ void menuBuscarVehiculo(sysTaller &s) {
     cout << "1. Buscar por ID" << endl;
     cout << "2. Buscar por Placa exacta" << endl;
     cout << "3. Buscar por Nombre de Propietario (parcial)" << endl;
-    cout << "Seleccione una opción: ";
-    cin >> opcionBusqueda;
+    
+    opcionBusqueda = leerEnteroSeguro("Seleccione una opción: ", 1, 3);
 
     if (opcionBusqueda == 1) {
         int id;
-        cout << "Ingrese el ID: ";
-        cin >> id;
+        id = leerEnteroSeguro("Ingrese el ID: ", 1, 999999);
+        
         Vehiculo* v = buscarVehiculoPorID(s, id);
         if (v != nullptr) mostrarVehiculo(*v);
         else cout << "ERROR: Vehículo con ID #" << id << " no encontrado." << endl;
     } 
     else if (opcionBusqueda == 2) {
         char placa[10];
-        cout << "Ingrese la placa exacta: ";
-        cin >> placa;
+        leerTextoNoVacio("Ingrese la placa exacta: ", placa, 10);
+        
         Vehiculo* v = buscarVehiculoPorPlaca(s, placa);
         if (v != nullptr) mostrarVehiculo(*v);
         else cout << "ERROR: Vehículo con placa '" << placa << "' no encontrado." << endl;
     } 
     else if (opcionBusqueda == 3) {
         char sub[100];
-        cout << "Ingrese el nombre o parte del propietario: ";
-        cin >> ws;
-        cin.getline(sub, 100);
+        leerTextoNoVacio("Ingrese el nombre o parte del propietario: ", sub, 100);
+        
         int cantidad = 0;
-        // Recibiendo arreglos temporales: Retorna un Vehiculo**
+
         Vehiculo** lista = buscarVehiculosPorPropietario(s, sub, cantidad);
         if (cantidad == 0 || lista == nullptr) {
             cout << "No se encontraron vehículos para el criterio \"" << sub << "\"." << endl;
@@ -110,7 +109,7 @@ void menuBuscarVehiculo(sysTaller &s) {
             for (int i = 0; i < cantidad; i++) {
                 mostrarVehiculo(*lista[i]);
             }
-            delete[] lista; // Liberar arreglo temporal de punteros
+            delete[] lista;
         }
     }
 }
@@ -135,10 +134,9 @@ void menuListarVehiculos(sysTaller &s) {
 void menuActualizarVehiculo(sysTaller &s) {
     cout << "\n--- ACTUALIZAR DATOS DE VEHICULO ---" << endl;
     
-    // Usamos el helper para evitar errores al pedir el ID
+    // Usamos la funcion de validacion para evitar errores al pedir el ID
     int id = leerEnteroSeguro("Ingrese el ID del vehiculo a actualizar: ", 1, 999999);
     
-    // Verificamos si existe antes de pedir todos los datos
     Vehiculo* actual = buscarVehiculoPorID(s, id);
     
     if (actual == nullptr) {
@@ -148,22 +146,17 @@ void menuActualizarVehiculo(sysTaller &s) {
 
     cout << "\nVehiculo encontrado. Ingrese los nuevos datos (Placa, KM y Registro no se pueden modificar)." << endl;
     
-    // Creamos una estructura temporal para guardar los nuevos datos validados
     Vehiculo nuevosDatos;
     
-    // 1. Marca y Modelo
     leerTextoNoVacio("Nueva Marca: ", nuevosDatos.marca, 50);
     leerTextoNoVacio("Nuevo Modelo: ", nuevosDatos.modelo, 50);
     
-    // 2. Año (1950-2027)
     nuevosDatos.anio = leerEnteroSeguro("Nuevo Ano de Fabricacion (1950-2027): ", 1950, 2027);
     
-    // 3. Propietario
     leerTextoNoVacio("Nuevo Nombre completo del propietario: ", nuevosDatos.nombrePropietario, 100);
     leerTextoNoVacio("Nueva Cedula o RIF del propietario: ", nuevosDatos.cedulaPropietario, 20);
     leerTelefonoSeguro("Nuevo Telefono del propietario: ", nuevosDatos.telefonoPropietario, 20);
 
-    // Confirmación
     char conf;
     cout << "¿Esta seguro de actualizar los datos de este vehiculo? (S/N): ";
     cin >> conf;
@@ -183,12 +176,22 @@ void menuActualizarVehiculo(sysTaller &s) {
 void menuEliminarVehiculo(sysTaller &s) {
     int id;
     cout << "\n--- ELIMINAR VEHÍCULO ---" << endl;
-    cout << "Ingrese el ID del vehículo a eliminar: ";
-    cin >> id;
+    id = leerEnteroSeguro("Ingrese la ID: ", 1, 999999);
 
     char confirmacion;
-    cout << "¿Está seguro de eliminar físicamente este vehículo? (S/N): ";
-    cin >> confirmacion;
+    do {
+        cout << "¿Está seguro de eliminar físicamente este vehículo? (S/N): ";
+        cin >> confirmacion;
+        
+        if (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n') {
+            cout << "[!] Entrada inválida. Por favor ingrese S para Sí o N para No.\n";
+            cin.clear();
+            cin.ignore(10000, '\n');
+        }
+    } while (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n');
+
+    cin.ignore(10000, '\n');
+
     if (confirmacion == 'S' || confirmacion == 's') {
         if (eliminarVehiculo(s, id)) {
             cout << "¡Vehículo eliminado exitosamente!" << endl;
@@ -237,19 +240,29 @@ void mostrarMecanico(Mecanico m) {
 void menuRegistrarMecanico(sysTaller &s) {
     Mecanico m;
     cout << "\n--- REGISTRAR MECÁNICO ---" << endl;
-    cout << "Nombre completo: ";
-    cin >> ws;
-    cin.getline(m.nombre, 100);
-    cout << "Cédula: ";
-    cin >> m.cedula;
-    cout << "Especialidad (MOTOR, FRENOS, ELECTRICIDAD, SUSPENSION, GENERAL): ";
-    cin >> m.especialidad;
-    cout << "Fecha de ingreso (YYYY-MM-DD): ";
-    cin >> m.fechaIngreso;
+    
+    leerTextoNoVacio("Nombre completo: ", m.nombre, 100);
+    
+    leerTextoNoVacio("Cédula: ", m.cedula, 20);
+    
+    leerTextoNoVacio("Especialidad (MOTOR, FRENOS, ELECTRICIDAD, SUSPENSION, GENERAL): ", m.especialidad, 20);
+    
+    leerFormatoFijo("Fecha de ingreso (YYYY-MM-DD): ", m.fechaIngreso, 10);
 
     char confirmacion;
-    cout << "¿Guardar mecánico? (S/N): ";
-    cin >> confirmacion;
+    do {
+        cout << "¿Guardar mecánico? (S/N): ";
+        cin >> confirmacion;
+        
+        if (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n') {
+            cout << "[!] Entrada inválida. Ingrese S para Sí o N para No.\n";
+            cin.clear();
+            cin.ignore(10000, '\n');
+        }
+    } while (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n');
+    
+    cin.ignore(10000, '\n');
+
     if (confirmacion == 'S' || confirmacion == 's') {
         Mecanico* nuevo = registrarMecanico(s, m);
         if (nuevo != nullptr) {
@@ -257,20 +270,21 @@ void menuRegistrarMecanico(sysTaller &s) {
         } else {
             cout << "ERROR: Cédula duplicada o especialidad inválida." << endl;
         }
+    } else {
+        cout << "Registro cancelado." << endl;
     }
 }
 
 void menuBuscarMecanicoPorID(sysTaller &s) {
     cout << "\n--- BUSCAR MECÁNICO POR ID ---" << endl;
     
-    // Validado para evitar errores si el usuario ingresa letras
     int idBuscado = leerEnteroSeguro("Ingrese el ID del mecanico a buscar: ", 1, 999999);
     
     Mecanico* m = buscarMecanicoPorID(s, idBuscado);
     
     if (m != nullptr) {
         cout << "\n¡Mecanico encontrado!" << endl;
-        mostrarMecanico(*m); // Llama a la función que ya tienes arriba para imprimir la cajita
+        mostrarMecanico(*m);
     } else {
         cout << "ERROR: No se encontro ningun mecanico registrado con el ID #" << idBuscado << "." << endl;
     }
@@ -280,15 +294,13 @@ void menuBuscarMecanicoPorCedula(sysTaller &s) {
     cout << "\n--- BUSCAR MECÁNICO POR CÉDULA ---" << endl;
     
     char cedula[20];
-    // Usamos la validación segura para que no dejen el campo vacío
     leerTextoNoVacio("Ingrese la cédula del mecánico a buscar: ", cedula, 20);
     
-    // Llamamos a la función de lógica existente
     Mecanico* m = buscarMecanicoPorCedula(s, cedula);
     
     if (m != nullptr) {
         cout << "\n¡Mecánico encontrado!" << endl;
-        mostrarMecanico(*m); // Imprime los datos usando tu formato existente
+        mostrarMecanico(*m);
     } else {
         cout << "ERROR: No se encontró ningún mecánico registrado con la cédula '" << cedula << "'." << endl;
     }
@@ -342,42 +354,58 @@ void mostrarRepuesto(Repuesto r) {
 void menuRegistrarRepuesto(sysTaller &s) {
     Repuesto r;
     cout << "\n--- REGISTRAR REPUESTO ---" << endl;
-    cout << "Codigo unico: ";
-    cin >> r.codigo;
-    cout << "Nombre del repuesto: ";
-    cin >> ws;
-    cin.getline(r.nombre, 100);
-    cout << "Marca: ";
-    cin.getline(r.marca, 50);
-    cout << "Precio unitario: ";
-    cin >> r.precio;
-    cout << "Stock inicial: ";
-    cin >> r.stock;
-    cout << "Stock minimo de alerta: ";
-    cin >> r.stockmin;
-    cout << "Fecha registro (YYYY-MM-DD): ";
-    cin >> r.fechaRegistro;
+    
+    leerTextoNoVacio("Código único: ", r.codigo, 20);
+    
+    leerTextoNoVacio("Nombre del repuesto: ", r.nombre, 100);
+    
+    leerTextoNoVacio("Marca: ", r.marca, 50);
+    
+    // Precio unitario validado de forma segura (> 0)
+    r.precio = leerFlotanteSeguro("Precio unitario (> 0): ", 0.01f, 1000000.0f);
+    
+    // Stock inicial validado con entero seguro (>= 0)
+    r.stock = leerEnteroSeguro("Stock inicial (>= 0): ", 0, 1000000);
+    
+    // Stock mínimo de alerta validado con entero seguro (>= 0)
+    r.stockmin = leerEnteroSeguro("Stock mínimo de alerta (>= 0): ", 0, 1000000);
+    
+    // Fecha de registro con formato fijo exacto (YYYY-MM-DD)[cite: 3]
+    leerFormatoFijo("Fecha registro (YYYY-MM-DD): ", r.fechaRegistro, 10);
 
     char conf;
-    cout << "¿Guardar repuesto? (S/N): ";
-    cin >> conf;
+    do {
+        cout << "¿Guardar repuesto? (S/N): ";
+        cin >> conf;
+        
+        if (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n') {
+            cout << "[!] Entrada inválida. Ingrese S para Sí o N para No." << endl;
+            cin.clear();
+            cin.ignore(10000, '\n');
+        }
+    } while (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n');
+    
+    cin.ignore(10000, '\n');
+
     if (conf == 'S' || conf == 's') {
         Repuesto* nuevo = registrarRepuesto(s, r);
         if (nuevo != nullptr) {
             cout << "¡Repuesto registrado con ID #" << nuevo->id << "!" << endl;
         } else {
-            cout << "ERROR: Codigo duplicado o valores invalidos (precio/stock)." << endl;
+            cout << "ERROR: Código duplicado o valores inválidos (precio/stock)." << endl;
         }
+    } else {
+        cout << "Registro cancelado." << endl;
     }
 }
 
 void menuEntradaMercancia(sysTaller &s) {
-    int id, cant;
     cout << "\n--- ENTRADA DE MERCANCIA ---" << endl;
-    cout << "ID del repuesto: ";
-    cin >> id;
-    cout << "Cantidad a sumar al stock: ";
-    cin >> cant;
+    
+    int id = leerEnteroSeguro("ID del repuesto: ", 1, 999999);
+    
+    int cant = leerEnteroSeguro("Cantidad a sumar al stock (> 0): ", 1, 1000000);
+    
     if (registrarEntradaMercancia(s, id, cant)) {
         cout << "¡Stock actualizado con exito!" << endl;
     } else {
@@ -388,28 +416,25 @@ void menuEntradaMercancia(sysTaller &s) {
 void menuBuscarRepuestoPorID(sysTaller &s) {
     cout << "\n--- BUSCAR REPUESTO POR ID ---" << endl;
     
-    // Validamos el ID para asegurar que sea un número entero válido
     int id = leerEnteroSeguro("Ingrese el ID del repuesto a buscar: ", 1, 999999);
     
-    // Llamamos a la función de lógica existente en logica.cpp
     Repuesto* r = buscarRepuestoPorID(s, id);
     
     if (r != nullptr) {
         cout << "\n¡Repuesto encontrado!" << endl;
-        mostrarRepuesto(*r); // Reutilizamos tu función para imprimir los datos y alertas de stock
+        mostrarRepuesto(*r);
     } else {
         cout << "ERROR: No se encontró ningún repuesto registrado con el ID #" << id << "." << endl;
     }
 }
 
 void menuCambiarPrecio(sysTaller &s) {
-    int id;
-    float nuevoP;
     cout << "\n--- CAMBIAR PRECIO DE REPUESTO ---" << endl;
-    cout << "ID del repuesto: ";
-    cin >> id;
-    cout << "Nuevo precio unitario: ";
-    cin >> nuevoP;
+    
+    int id = leerEnteroSeguro("ID del repuesto: ", 1, 999999);
+    
+    float nuevoP = leerFlotanteSeguro("Nuevo precio unitario (> 0): ", 0.01f, 1000000.0f);
+    
     if (cambiarPrecioRepuesto(s, id, nuevoP)) {
         cout << "¡Precio actualizado con exito!" << endl;
     } else {
@@ -432,14 +457,24 @@ void menuListarRepuestos(sysTaller &s) {
 }
 
 void menuEliminarRepuesto(sysTaller &s) {
-    int id;
     cout << "\n--- ELIMINAR REPUESTO ---" << endl;
-    cout << "Ingrese el ID del repuesto a eliminar: ";
-    cin >> id;
+    
+    int id = leerEnteroSeguro("Ingrese el ID del repuesto a eliminar: ", 1, 999999);
 
     char conf;
-    cout << "¿Está seguro de eliminar físicamente este repuesto? (S/N): ";
-    cin >> conf;
+    do {
+        cout << "¿Está seguro de eliminar físicamente este repuesto? (S/N): ";
+        cin >> conf;
+        
+        if (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n') {
+            cout << "[!] Entrada inválida. Ingrese S para Sí o N para No." << endl;
+            cin.clear();
+            cin.ignore(10000, '\n');
+        }
+    } while (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n');
+    
+    cin.ignore(10000, '\n');
+
     if (conf == 'S' || conf == 's') {
         if (eliminarRepuesto(s, id)) {
             cout << "¡Repuesto eliminado exitosamente!" << endl;
@@ -507,38 +542,38 @@ void mostrarDetalleOrden(sysTaller &s, const ordenServicio &o) {
 }
 
 void menuAbrirOrden(sysTaller &s) {
-    int idV, idM, km;
-    char fecha[11], falla[200];
     cout << "\n--- ABRIR ORDEN DE SERVICIO ---" << endl;
-    cout << "ID del vehiculo: ";
-    cin >> idV;
-    cout << "ID del mecanico: ";
-    cin >> idM;
-    cout << "Fecha de apertura (YYYY-MM-DD): ";
-    cin >> fecha;
-    cout << "Kilometraje de ingreso: ";
-    cin >> km;
-    cout << "Descripcion de la falla: ";
-    cin >> ws;
-    cin.getline(falla, 200);
+    
+    int idV = leerEnteroSeguro("ID del vehículo: ", 1, 999999);
+    
+    int idM = leerEnteroSeguro("ID del mecánico: ", 1, 999999);
+    
+    char fecha[11];
+    leerFormatoFijo("Fecha de apertura (YYYY-MM-DD): ", fecha, 10);
+    
+    int km = leerEnteroSeguro("Kilometraje de ingreso (>= 0): ", 0, 2000000);
+    
+    char falla[200];
+    leerTextoNoVacio("Descripción de la falla: ", falla, 200);
 
     ordenServicio* nueva = abrirOrdenServicio(s, idV, idM, fecha, falla, km);
     if (nueva != nullptr) {
         cout << "¡Orden de servicio #" << nueva->id << " abierta exitosamente!" << endl;
     } else {
-        cout << "ERROR: No se pudo abrir la orden. Verifique si el vehículo/mecanico existen, si el vehículo ya tiene otra orden abierta, si el mecánico supero el limite de 3 ordenes o si el kilometraje es menor al registrado." << endl;
+        cout << "ERROR: No se pudo abrir la orden. Verifique si el vehículo/mecánico existen, si el vehículo ya tiene otra orden abierta, si el mecánico superó el límite de 3 órdenes o si el kilometraje es menor al registrado." << endl;
     }
 }
 
+
+
 void menuAgregarRepuestoOrden(sysTaller &s) {
-    int idO, idR, cant;
     cout << "\n--- AGREGAR REPUESTO A ORDEN ---" << endl;
-    cout << "ID de la orden: ";
-    cin >> idO;
-    cout << "ID del repuesto: ";
-    cin >> idR;
-    cout << "Cantidad: ";
-    cin >> cant;
+    
+    int idO = leerEnteroSeguro("ID de la orden: ", 1, 999999);
+    
+    int idR = leerEnteroSeguro("ID del repuesto: ", 1, 999999);
+    
+    int cant = leerEnteroSeguro("Cantidad (> 0): ", 1, 1000000);
 
     if (agregarRepuestoAOrden(s, idO, idR, cant)) {
         cout << "¡Repuesto agregado a la orden correctamente!" << endl;
@@ -585,66 +620,89 @@ void menuListarOrdenesPorEstado(sysTaller &s) {
 }
 
 void menuQuitarRepuestoOrden(sysTaller &s) {
-    int idO, idR;
     cout << "\n--- QUITAR REPUESTO DE ORDEN ---" << endl;
-    cout << "ID de la orden: ";
-    cin >> idO;
-    cout << "ID del repuesto a quitar de la linea: ";
-    cin >> idR;
+    
+    int idO = leerEnteroSeguro("ID de la orden: ", 1, 999999);
+    
+    int idR = leerEnteroSeguro("ID del repuesto a quitar de la línea: ", 1, 999999);
 
     if (quitarRepuestoDeOrden(s, idO, idR)) {
-        cout << "¡Linea de repuesto removida y stock devuelto al inventario!" << endl;
+        cout << "¡Línea de repuesto removida y stock devuelto al inventario!" << endl;
     } else {
         cout << "ERROR: Orden no abierta o repuesto no encontrado en la orden." << endl;
     }
 }
 
 void menuCerrarOrden(sysTaller &s) {
-    int idO;
-    float mano;
-    char fecha[11];
     cout << "\n--- CERRAR ORDEN DE SERVICIO ---" << endl;
-    cout << "ID de la orden: ";
-    cin >> idO;
-    cout << "Fecha de cierre (YYYY-MM-DD): ";
-    cin >> fecha;
-    cout << "Costo de mano de obra: ";
-    cin >> mano;
+    
+    int idO = leerEnteroSeguro("ID de la orden: ", 1, 999999);
+    
+    char fecha[11];
+    leerFormatoFijo("Fecha de cierre (YYYY-MM-DD): ", fecha, 10);
+    
+    float mano = leerFlotanteSeguro("Costo de mano de obra (>= 0): ", 0.0f, 1000000.0f);
 
     char conf;
-    cout << "¿Desea cerrar esta orden? (Ya no se podra modificar) (S/N): ";
-    cin >> conf;
+    do {
+        cout << "¿Desea cerrar esta orden? (Ya no se podrá modificar) (S/N): ";
+        cin >> conf;
+        
+        if (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n') {
+            cout << "[!] Entrada inválida. Ingrese S para Sí o N para No." << endl;
+            cin.clear();
+            cin.ignore(10000, '\n');
+        }
+    } while (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n');
+    
+    cin.ignore(10000, '\n');
+
     if (conf == 'S' || conf == 's') {
         if (cerrarOrdenServicio(s, idO, fecha, mano)) {
             cout << "¡Orden cerrada exitosamente!" << endl;
         } else {
-            cout << "ERROR: Orden no encontrada, ya no esta abierta o datos de mano de obra invalidos." << endl;
+            cout << "ERROR: Orden no encontrada, ya no está abierta o datos de mano de obra inválidos." << endl;
         }
+    } else {
+        cout << "Operación cancelada." << endl;
     }
 }
 
 void menuAnularOrden(sysTaller &s) {
-    int idO;
     cout << "\n--- ANULAR ORDEN DE SERVICIO ---" << endl;
-    cout << "ID de la orden a anular: ";
-    cin >> idO;
+    
+    int idO = leerEnteroSeguro("ID de la orden a anular: ", 1, 999999);
 
     char conf;
-    cout << "¿Confirma la anulacion? (Los repuestos volveran al inventario) (S/N): ";
-    cin >> conf;
+    do {
+        cout << "¿Confirma la anulación? (Los repuestos volverán al inventario) (S/N): ";
+        cin >> conf;
+        
+        if (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n') {
+            cout << "[!] Entrada inválida. Ingrese S para Sí o N para No." << endl;
+            cin.clear();
+            cin.ignore(10000, '\n');
+        }
+    } while (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n');
+    
+    cin.ignore(10000, '\n');
+
     if (conf == 'S' || conf == 's') {
         if (anularOrdenServicio(s, idO)) {
             cout << "¡Orden anulada y stock devuelto al inventario!" << endl;
         } else {
-            cout << "ERROR: Orden no encontrada o estado invalido para anular." << endl;
+            cout << "ERROR: Orden no encontrada o estado inválido para anular." << endl;
         }
+    } else {
+        cout << "Operación cancelada." << endl;
     }
 }
 
 void menuVerDetalleOrden(sysTaller &s) {
-    int idO;
-    cout << "Ingrese el ID de la orden: ";
-    cin >> idO;
+    cout << "\n--- VER DETALLE DE ORDEN ---" << endl;
+    
+    int idO = leerEnteroSeguro("Ingrese el ID de la orden: ", 1, 999999);
+    
     ordenServicio* o = buscarOrdenPorID(s, idO);
     if (o != nullptr) {
         mostrarDetalleOrden(s, *o);

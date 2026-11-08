@@ -12,6 +12,7 @@ void liberarSistema(sysTaller &s);
 int leerEnteroSeguro(const string& mensaje, int min, int max);
 void leerTextoNoVacio(const string& mensaje, char destino[], int tamMax);
 void leerFormatoFijo(const string& mensaje, char destino[], int longitudEsperada);
+float leerFlotanteSeguro(const string& mensaje, float min, float max);
 bool esSoloDigitos(const string& str);
 void leerTelefonoSeguro(const string& mensaje, char destino[], int tamMax);
 
