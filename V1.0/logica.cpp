@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstring>
 #include <cctype>
+#include <sstream>
 #include <string>
 using namespace std;
 
@@ -38,17 +39,17 @@ int leerEnteroSeguro(const string& mensaje, int min, int max) {
     int valor;
     while (true) {
         cout << mensaje;
-        cin >> valor;
+        string entrada;
+        cin >> ws;
+        getline(cin, entrada);
+        istringstream lectura(entrada);
 
-        if (cin.fail()) {
+        char sobrante;
+        if (!(lectura >> valor) || (lectura >> sobrante)) {
             cout << "Entrada inválida, inserte un valor numérico." << endl;
-            cin.clear();
-            cin.ignore(10000, '\n');
         } else if (valor < min || valor > max) {
             cout << "Error: El valor debe estar entre " << min << " y " << max << "." << endl;
-            // No hace falta cin.clear() porque cin sí leyó un número válido, solo está fuera de rango
         } else {
-            cin.ignore(10000, '\n');
             return valor;
         }
     }
