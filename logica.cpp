@@ -40,14 +40,45 @@ int leerEnteroSeguro(const string& mensaje, int min, int max) {
         cout << mensaje;
         cin >> valor;
 
-        // Si el usuario introdujo una letra o el valor esta fuera del rango permitido
-        if (cin.fail() || valor < min || valor > max) {
-            cout << "Entrada invalida, inserte un valor numerico " << endl;
+        if (cin.fail()) {
+            cout << "Entrada inválida, inserte un valor numérico." << endl;
             cin.clear();
             cin.ignore(10000, '\n');
+        } else if (valor < min || valor > max) {
+            cout << "Error: El valor debe estar entre " << min << " y " << max << "." << endl;
+            // No hace falta cin.clear() porque cin sí leyó un número válido, solo está fuera de rango
         } else {
-            cin.ignore(10000, '\n'); // Limpiar el ENTER pendiente
-            return valor; // Retorna valor validado
+            cin.ignore(10000, '\n');
+            return valor;
+        }
+    }
+}
+
+bool contieneNumeros(const char* str) {
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (isdigit(str[i])) {
+            return true; // Encontró un número
+        }
+    }
+    return false;
+}
+
+void leerTextoSoloLetras(const string& mensaje, char destino[], int tamMax) {
+    while (true) {
+        cout << mensaje;
+        cin >> ws; // Limpia espacios iniciales y saltos de línea pendientes
+        cin.getline(destino, tamMax);
+
+        // Validar si está vacío
+        if (strlen(destino) == 0) {
+            cout << "[!] El campo no puede estar vacío. Intente de nuevo." << endl;
+        } 
+        // Validar si contiene números
+        else if (contieneNumeros(destino)) {
+            cout << "[!] Entrada inválida. No se permiten números en este campo." << endl;
+        } 
+        else {
+            break;
         }
     }
 }
@@ -441,6 +472,15 @@ Repuesto* registrarRepuesto(sysTaller &s, Repuesto datos) {
 Repuesto* buscarRepuestoPorID(sysTaller &s, int id) {
     for (int i = 0; i < s.numRepuestos; i++) {
         if (s.repuestos[i].id == id) {
+            return &s.repuestos[i];
+        }
+    }
+    return nullptr;
+}
+
+Repuesto* buscarRepuestoPorCodigo(sysTaller s, const char* codigo) {
+    for (int i = 0; i < s.numRepuestos; i++) {
+        if (strcmp(s.repuestos[i].codigo, codigo) == 0) {
             return &s.repuestos[i];
         }
     }

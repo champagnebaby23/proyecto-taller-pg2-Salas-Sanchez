@@ -10,8 +10,6 @@ struct Taller {
     char rif[20]; // Identificar fiscal
     char direccion[200]; // Ubicacion fisica del taller
     char telefono[20]; // Telefono de contacto
-    time_t fechaCreacion;
-    time_t fechaUltimaModificacion; 
 };
 
 // Estructura del vehiculo
@@ -29,9 +27,6 @@ struct Vehiculo {
     char cedulaPropietario[20];
     char telefonoPropietario[20];
     char fechaRegistro[11]; // YYYY-MM-DD
-    bool eliminado;
-    time_t FechaCreacion;
-    time_t FechaUltimaModificacion;
 };
 
 // Estructura del mecanico
@@ -42,9 +37,6 @@ struct Mecanico {
     char telefono[20];
     char especialidad[20]; // Validada como "MOTOR" "FRENOS", etc en la logica
     char fechaIngreso[11];
-    bool eliminado;
-    time_t fechaCreacion;
-    time_t fechaUltimaModificacion;
 };
 
 // Estructura del Repuesto
@@ -53,13 +45,10 @@ struct Repuesto {
     char codigo[20]; // Codigo unico alfanumerico
     char nombre[100];
     char marca[50];
-    char fechaRegistro[11];
     float precio; // Precio actual vigente  > 0
     int stock; // Unidades disponibles
     int stockmin; // Si stock <= stockmin se muestra 'Bajo stock'
-    bool eliminado;
-    time_t fechaCreacion;
-    time_t fechaUltimaModificacion;
+    char fechaRegistro[11];
 };
 
 // Estructura detalleOrden
@@ -87,13 +76,9 @@ struct ordenServicio {
 
 // Arreglo dinamico propio de cada orden de servicio
 // Al abrir la orden, se inicializa con new detalleOrden[2] (capacidad 2)
-detalleOrden detalles[15];
+detalleOrden* detalles;
 int numDetalles; // Cuantas lineas de repuestos tiene actualmente
 int capacidadDetalles; // Cuanta RAM esta asignada para la orden
-
-    bool eliminado;
-    time_t fechaCreacion;
-    time_t fechaUltimaModificacion;
 };
 
 // Estructura principal del sistema
