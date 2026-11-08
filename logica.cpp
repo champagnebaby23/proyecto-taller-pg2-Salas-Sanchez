@@ -1,0 +1,691 @@
+#include "logica.h"
+#include <iostream>
+#include <cstring>
+#include <cctype>
+#include <string>
+using namespace std;
+
+// FUNCIONES AUXILIARES
+// Se utilizan arreglos char en C para garantizar memoria fija
+void aMinusculas(const char* origen, char* destino) {
+    int i = 0;
+    while (origen[i] != '\0') {
+        destino[i] = tolower(origen[i]);
+        i++;
+    }
+    destino[i] = '\0';
+}
+
+void leerTextoNoVacio(const string &mensaje, char destino[], int tamMax) {
+    string entrada;
+    do {
+        cout << mensaje;
+        cin >> ws;
+        getline(cin, entrada);
+
+        if (entrada.empty()) { // Verifica que lo que se introducio no sea espacio en blanco
+            cout << "Este campo no puede estar vacio, intente nuevamente" << endl;
+        } else if (entrada.length() >= (size_t)tamMax) { // Si el texto se extiende hasta un tama;o asignado, salta un mensaje de error
+            cout << "El texto es demasiado largo, (maximo " << tamMax - 1 << " caracteres), intente nuevamente" << endl;
+            entrada = "";
+        }
+    } while (entrada.empty());
+
+    strcpy (destino, entrada.c_str());
+}
+
+int leerEnteroSeguro(const string& mensaje, int min, int max) {
+    int valor;
+    while (true) {
+        cout << mensaje;
+        cin >> valor;
+
+        // Si el usuario introdujo una letra o el valor esta fuera del rango permitido
+        if (cin.fail() || valor < min || valor > max) {
+            cout << "Entrada invalida, inserte un valor numerico " << endl;
+            cin.clear();
+            cin.ignore(10000, '\n');
+        } else {
+            cin.ignore(10000, '\n'); // Limpiar el ENTER pendiente
+            return valor; // Retorna valor validado
+        }
+    }
+}
+
+// Mismo funcionamiento
+void leerFormatoFijo(const string& mensaje, char destino[], int longitudEsperada) {
+    string entrada;
+    do {
+        cout << mensaje;
+        cin >> ws;
+        getline(cin, entrada);
+
+        if (entrada.length() != (size_t)longitudEsperada) {
+            cout << "[!] Formato invalido. Debe tener exactamente " << longitudEsperada << " caracteres (Ej: 2026-11-03).\n";
+        }
+    } while (entrada.length() != (size_t)longitudEsperada);
+
+    strcpy(destino, entrada.c_str());
+}
+
+bool esSoloDigitos(const string& str) {
+    if (str.empty()) return false;
+    for (char c : str) {
+        if (!isdigit(c)) { // Si encuentra algo que no sea un número (0-9)
+            return false;
+        }
+    }
+    return true;
+}
+
+void leerTelefonoSeguro(const string& mensaje, char destino[], int tamMax) {
+    string entrada;
+    bool valido = true;
+    do {
+        valido = true;
+        cout << mensaje;
+        cin >> ws;
+        getline(cin, entrada);
+        
+        if (entrada.empty()) {
+            cout << "[!] Este campo no puede estar vacio. Intente nuevamente.\n";
+            valido = false;
+        } else if (entrada.length() >= (size_t)tamMax) {
+            cout << "[!] El texto es demasiado largo. Intente nuevamente.\n";
+            valido = false;
+        } else {
+            // Verificamos que cada carácter sea un número o un guion -
+            for (char c : entrada) {
+                if (!isdigit(c) && c != '-') {
+                    cout << "[!] Error: El telefono solo debe contener numeros o guiones (-).\n";
+                    valido = false;
+                    break;
+                }
+            }
+        }
+    } while (!valido);
+
+    strcpy(destino, entrada.c_str());
+}
+
+float leerFlotanteSeguro(const string& mensaje, float min, float max) {
+    float valor;
+    while (true) {
+        cout << mensaje;
+        cin >> valor;
+
+        if (cin.fail() || valor < min || valor > max) {
+            cout << "Entrada inválida, inserte un valor numérico válido." << endl;
+            cin.clear();
+            cin.ignore(10000, '\n');
+        } else {
+            cin.ignore(10000, '\n'); // Limpiar el ENTER pendiente
+            return valor;
+        }
+    }
+}
+
+// Implementa una busqueda insensible a mayusculas o minusculas 
+bool contieneSubcadena(const char* texto, const char* subcadena) {
+    char t[100], sub[100];
+    aMinusculas(texto, t);
+    aMinusculas(subcadena, sub);
+    return strstr(t, sub) != nullptr;
+}
+
+void inicializarSistema(sysTaller &s, const char* nombre, const char* rif, const char* dir, const char* tel) {
+
+    strcpy(s.taller.nombre, nombre);
+    strcpy(s.taller.rif, rif);
+    strcpy(s.taller.direccion, dir);
+    strcpy(s.taller.telefono, tel);
+
+// Todos los arreglos arrancan con capacidad de 4 espacios en RAM
+// Se usa new para alojar los datos en memoria dinamica
+    s.capacidadVehiculos = 4;
+    s.numVehiculos = 0;
+    s.vehiculos = new Vehiculo[s.capacidadVehiculos];
+
+    s.capacidadMecanicos = 4;
+    s.numMecanicos = 0;
+    s.mecanicos = new Mecanico[s.capacidadMecanicos];
+
+    s.capacidadRepuestos = 4;
+    s.numRepuestos = 0;
+    s.repuestos = new Repuesto[s.capacidadRepuestos];
+
+    s.capacidadOrdenes = 4;
+    s.numOrdenes = 0;
+    s.ordenes = new ordenServicio[s.capacidadOrdenes];
+
+    // ID autoincremental para garantizar integridad referencial 
+    s.siguienteIdVehiculo = 1;
+    s.siguienteIdMecanico = 1;
+    s.siguienteIdRepuesto = 1;
+    s.siguienteIdOrden = 1;
+}
+
+
+// Prevencion de fugas de memoria
+void liberarSistema(sysTaller &s) {
+
+// Se recorren todas las ordenes para destruir sus arreglos internos
+    for (int i=0; i < s.numOrdenes; i++) {
+        delete[] s.ordenes[i].detalles;
+    }
+
+    // Despues, se procede a eliminar los arreglos maestros
+    delete[] s.ordenes;
+    delete[] s.vehiculos;
+    delete[] s.mecanicos;
+    delete[] s.repuestos;
+    
+    // Se anulan los punteros para evitar memory leaks
+    s.vehiculos = nullptr;
+    s.mecanicos = nullptr;
+    s.repuestos = nullptr;
+    s.ordenes = nullptr;
+}
+
+// =====================
+// MODULO DE VEHICULOS
+// =====================
+
+Vehiculo* agregarVehiculo(sysTaller &s, Vehiculo datos) {
+
+    // Validaciones estrictas de reglas del negocio
+    if (buscarVehiculoPorPlaca(s, datos.placa) != nullptr) { 
+        return nullptr;
+    }
+
+    if (datos.anio < 1950 || datos.anio > 2027 || datos.km < 0) {
+        return nullptr;
+    }
+    // Redireccionamiento automatico
+    if (s.numVehiculos >= s.capacidadVehiculos) { // Ocurre cuando se agota la capacidad inicial (num == capacidad)
+        int nuevaCapacidad = s.capacidadVehiculos * 2;
+        Vehiculo* nuevoArreglo = new Vehiculo[nuevaCapacidad];
+
+        // Se copia el arreglo viejo al nuevo
+        for (int i = 0; i < s.numVehiculos; i++) { 
+            nuevoArreglo[i] = s.vehiculos[i];
+    }
+
+    // Se elimina el arreglo viejo y el nuevo asume el nuevo contenedor
+    delete[] s.vehiculos;
+    s.vehiculos = nuevoArreglo;
+    s.capacidadVehiculos = nuevaCapacidad;
+    }
+
+datos.id = s.siguienteIdVehiculo++;
+s.vehiculos[s.numVehiculos] = datos;
+
+return &s.vehiculos[s.numVehiculos++];
+}
+
+Vehiculo* buscarVehiculoPorID(sysTaller &s, int id) {
+    for (int i=0; i < s.numVehiculos; i++) {
+        if (s.vehiculos[i].id == id) {
+            return &s.vehiculos[i]; // Retorna la direccion de memoria exacta del vehiculo en el arreglo
+            }
+        }
+    return nullptr;
+    }
+
+Vehiculo* buscarVehiculoPorPlaca(sysTaller &s, const char* placa) {
+    for (int i = 0; i < s.numVehiculos; i++) {
+        if (strcmp(s.vehiculos[i].placa, placa) == 0) {
+            return &s.vehiculos[i];
+        }
+    }
+    return nullptr;
+}
+
+Vehiculo** buscarVehiculosPorPropietario(sysTaller &s, const char* subcadena, int &cantidad) {
+    cantidad = 0;
+    // Se cuentan cuantos coinciden para saber de que tama;o crear el arreglo 
+    for (int i = 0; i < s.numVehiculos; i++) {
+        if (contieneSubcadena(s.vehiculos[i].nombrePropietario, subcadena)) {
+            cantidad++;
+        }
+    }
+    if (cantidad == 0) return nullptr;
+
+    // ARREGLO DE PUNTEROS
+    // No se duplican los vehiculos pesados, solo se crea un arreglo temporal de flechas
+    Vehiculo** resultado = new Vehiculo*[cantidad];
+    int idx = 0;
+    for (int i = 0; i < s.numVehiculos; i++) {
+        if (contieneSubcadena(s.vehiculos[i].nombrePropietario, subcadena)) {
+            resultado[idx++] = &s.vehiculos[i];
+        }
+    }
+    return resultado;
+}
+
+Vehiculo** listarVehiculos(sysTaller &s, int &cantidad) {
+    cantidad = s.numVehiculos;
+    if (cantidad == 0) return nullptr;
+
+    Vehiculo** resultado = new Vehiculo*[cantidad];
+    for (int i = 0; i < cantidad; i++) {
+        resultado[i] = &s.vehiculos[i];
+    }
+    return resultado;
+}
+
+bool actualizarVehiculo(sysTaller &s, int id, Vehiculo datos) {
+    // Buscamos si el vehículo existe
+    Vehiculo* v = buscarVehiculoPorID(s, id);
+    
+    // Retorna false si el ID no existe o algún dato numérico es inválido
+    if (v == nullptr) return false;
+    if (datos.anio < 1950 || datos.anio > 2027) return false;
+    if (strlen(datos.marca) == 0 || strlen(datos.modelo) == 0 || strlen(datos.nombrePropietario) == 0) return false;
+
+    // Actualizamos solo los campos permitidos según el enunciado
+    strcpy(v->marca, datos.marca);
+    strcpy(v->modelo, datos.modelo);
+    v->anio = datos.anio;
+    
+    strcpy(v->nombrePropietario, datos.nombrePropietario);
+    strcpy(v->cedulaPropietario, datos.cedulaPropietario);
+    strcpy(v->telefonoPropietario, datos.telefonoPropietario);
+
+    // El ID, la placa, el kilometraje y la fechaRegistro quedan intactos
+    return true;
+}
+
+// ====== FUNCION ACTUALIZAR VEHICULOS ====== 
+
+
+bool eliminarVehiculo(sysTaller &s, int id) {
+    for (int i = 0; i < s.numOrdenes; i++) {
+        if (s.ordenes[i].idVehiculo == id) {
+            return false; // Bloqueado si existen ordenes con ese vehiculo
+        }
+    }
+
+    int index = -1;
+    for (int i = 0; i < s.numVehiculos; i++) {
+        if (s.vehiculos[i].id == id) {
+            index = i;
+            break;
+        }
+    }
+    if (index == -1) return false;
+
+    // Se desplazan elementos hacia atras
+    for (int i = index; i < s.numVehiculos - 1; i++) {
+        s.vehiculos[i] = s.vehiculos[i + 1];
+    }
+    s.numVehiculos--;
+    return true;
+}
+
+// =================
+// MODULO MECANICOS
+// =================
+Mecanico* registrarMecanico(sysTaller &s, Mecanico datos) {
+    // 1. Validaciones de negocio
+    if (buscarMecanicoPorCedula(s, datos.cedula) != nullptr) {
+        return nullptr;
+    }
+
+    if (!especialidadValida(datos.especialidad)) {
+        return nullptr;
+    }
+
+    if (strlen(datos.nombre) == 0 || strlen(datos.fechaIngreso) == 0) {
+        return nullptr;
+    }
+
+    if (s.numMecanicos >= s.capacidadMecanicos) {
+        int nuevaCapacidad = s.capacidadMecanicos * 2;
+        Mecanico* nuevoArreglo = new Mecanico[nuevaCapacidad];
+
+        for (int i = 0; i < s.numMecanicos; i++) {
+            nuevoArreglo[i] = s.mecanicos[i];
+        }
+
+        delete[] s.mecanicos;
+        s.mecanicos = nuevoArreglo;
+        s.capacidadMecanicos = nuevaCapacidad;
+    }
+
+    datos.id = s.siguienteIdMecanico++; 
+    
+    int indiceActual = s.numMecanicos;  
+    s.mecanicos[indiceActual] = datos;  
+    
+    s.numMecanicos++;                   
+
+    return &s.mecanicos[indiceActual];
+}
+
+bool especialidadValida(const char* esp) {
+        return (strcmp(esp, "MOTOR") == 0 || 
+                strcmp(esp, "FRENOS") == 0 || 
+                strcmp(esp, "ELECTRICIDAD") == 0 || 
+                strcmp(esp, "SUSPENSION") == 0 || 
+                strcmp(esp, "GENERAL") == 0);
+}
+
+Mecanico* buscarMecanicoPorID(sysTaller &s, int id) {
+    for (int i = 0; i < s.numMecanicos; i++) {
+        if (s.mecanicos[i].id == id) {
+            return &s.mecanicos[i];
+        }
+    }
+    return nullptr;
+}
+
+Mecanico* buscarMecanicoPorCedula(sysTaller &s, const char* cedula) {
+    for (int i = 0; i < s.numMecanicos; i++) {
+        if (strcmp(s.mecanicos[i].cedula, cedula) == 0) {
+            return &s.mecanicos[i];
+        }
+    }
+    return nullptr;
+}
+
+Mecanico** listarMecanicos(sysTaller &s, int &cantidad) {
+    cantidad = s.numMecanicos;
+    if (cantidad == 0) return nullptr;
+
+    Mecanico** resultado = new Mecanico*[cantidad];
+    for (int i = 0; i < cantidad; i++) {
+        resultado[i] = &s.mecanicos[i];
+    }
+    return resultado;
+}
+
+// =================
+// MODULO REPUESTOS
+// =================
+Repuesto* registrarRepuesto(sysTaller &s, Repuesto datos) {
+
+    if (buscarRepuestoPorCodigo(s, datos.codigo) != nullptr) {
+        return nullptr;
+    }
+    if (datos.precio <= 0 || datos.stock < 0 || datos.stockmin < 0) {
+        return nullptr;
+    }
+    if (strlen(datos.nombre) == 0 || strlen(datos.fechaRegistro) == 0) {
+        return nullptr;
+    }
+
+    if (s.numRepuestos >= s.capacidadRepuestos) {
+        int nuevaCapacidad = s.capacidadRepuestos * 2;
+        Repuesto* nuevoArreglo = new Repuesto[nuevaCapacidad];
+
+        for (int i = 0; i < s.numRepuestos; i++) {
+            nuevoArreglo[i] = s.repuestos[i];
+        }
+
+        delete[] s.repuestos;
+        s.repuestos = nuevoArreglo;
+        s.capacidadRepuestos = nuevaCapacidad;
+    }
+
+    datos.id = s.siguienteIdRepuesto++; 
+    
+    int indiceActual = s.numRepuestos;  
+    s.repuestos[indiceActual] = datos;  
+    
+    s.numRepuestos++; 
+
+    return &s.repuestos[indiceActual];
+}
+
+Repuesto* buscarRepuestoPorID(sysTaller &s, int id) {
+    for (int i = 0; i < s.numRepuestos; i++) {
+        if (s.repuestos[i].id == id) {
+            return &s.repuestos[i];
+        }
+    }
+    return nullptr;
+}
+
+bool registrarEntradaMercancia(sysTaller &s, int idRepuesto, int cantidadAdicional) {
+    if (cantidadAdicional <= 0) return false;
+    Repuesto* r = buscarRepuestoPorID(s, idRepuesto);
+    if (r == nullptr) return false;
+    r->stock += cantidadAdicional;
+    return true;
+}
+
+Repuesto** listarRepuestos(sysTaller &s, int &cantidad) {
+    cantidad = s.numRepuestos;
+    if (cantidad == 0) return nullptr;
+
+    Repuesto** resultado = new Repuesto*[cantidad];
+    for (int i = 0; i < cantidad; i++) {
+        resultado[i] = &s.repuestos[i];
+    }
+    return resultado;
+}
+
+bool cambiarPrecioRepuesto(sysTaller &s, int idRepuesto, float nuevoPrecio) {
+    if (nuevoPrecio <= 0) return false;
+
+    Repuesto* r = buscarRepuestoPorID(s, idRepuesto);
+    if (r == nullptr) return false;
+
+    r->precio = nuevoPrecio;
+    return true;
+}
+
+bool eliminarRepuesto(sysTaller &s, int id) {
+    for (int i = 0; i < s.numOrdenes; i++) {
+        for (int j = 0; j < s.ordenes[i].numDetalles; j++) {
+            if (s.ordenes[i].detalles[j].idRepuesto == id) {
+                return false; // Rechazado: Romperia el historial del taller
+            }
+        }
+    }
+
+    int index = -1;
+    for (int i = 0; i < s.numRepuestos; i++) {
+        if (s.repuestos[i].id == id) {
+            index = i;
+            break;
+        }
+    }
+    
+    if (index == -1) return false;
+
+    for (int i = index; i < s.numRepuestos - 1; i++) {
+        s.repuestos[i] = s.repuestos[i + 1];
+    }
+    
+    s.numRepuestos--;
+    return true;
+}
+
+// ===========================
+// MODULO ORDENES DE SERVICIO
+// ===========================
+
+ordenServicio* abrirOrdenServicio(sysTaller &s, int idVehiculo, int idMecanico, const char* fechaApertura, const char* descripcionFalla, int kmIngreso) {
+    Vehiculo* v = buscarVehiculoPorID(s, idVehiculo);
+    if (v == nullptr) return nullptr;
+
+    Mecanico* m = buscarMecanicoPorID(s, idMecanico);
+    if (m == nullptr) return nullptr;
+
+    for (int i = 0; i < s.numOrdenes; i++) {
+        if (s.ordenes[i].idVehiculo == idVehiculo && strcmp(s.ordenes[i].estado, "ABIERTA") == 0) {
+            return nullptr; 
+        }
+    }
+
+    int ordenesAbiertasMecanico = 0;
+    for (int i = 0; i < s.numOrdenes; i++) {    
+        if (s.ordenes[i].idMecanico == idMecanico && strcmp(s.ordenes[i].estado, "ABIERTA") == 0) {
+            ordenesAbiertasMecanico++;
+        }
+    }
+    if (ordenesAbiertasMecanico >= 3) return nullptr;
+
+    if (kmIngreso < v->km) return nullptr;
+
+    v->km = kmIngreso;
+
+    if (s.numOrdenes >= s.capacidadOrdenes) {
+        int nuevaCapacidad = s.capacidadOrdenes * 2;
+        ordenServicio* nuevoArreglo = new ordenServicio[nuevaCapacidad];
+        for (int i = 0; i < s.numOrdenes; i++) {
+            nuevoArreglo[i] = s.ordenes[i];
+        }
+        delete[] s.ordenes;
+        s.ordenes = nuevoArreglo;
+        s.capacidadOrdenes = nuevaCapacidad;
+    }
+
+    ordenServicio nueva;
+    nueva.id = s.siguienteIdOrden++;
+    nueva.idVehiculo = idVehiculo;
+    nueva.idMecanico = idMecanico;
+    strcpy(nueva.fechaApertura, fechaApertura);
+    strcpy(nueva.fechaCierre, "");
+    strcpy(nueva.estado, "ABIERTA");
+    strcpy(nueva.descripcionFalla, descripcionFalla);
+    nueva.kmIngreso = kmIngreso;
+    nueva.manoObra = 0.0f;
+
+    nueva.capacidadDetalles = 2;
+    nueva.numDetalles = 0;
+    nueva.detalles = new detalleOrden[nueva.capacidadDetalles];
+
+    s.ordenes[s.numOrdenes] = nueva;
+    return &s.ordenes[s.numOrdenes++];
+}
+
+bool agregarRepuestoAOrden(sysTaller &s, int idOrden, int idRepuesto, int cantidad) {
+    ordenServicio* o = buscarOrdenPorID(s, idOrden);
+    if (o == nullptr || strcmp(o->estado, "ABIERTA") != 0) return false; 
+    if (cantidad <= 0) return false;
+
+    Repuesto* r = buscarRepuestoPorID(s, idRepuesto);
+    if (r == nullptr || r->stock < cantidad) return false; 
+
+    bool encontrado = false;
+    for (int i = 0; i < o->numDetalles; i++) {
+        if (o->detalles[i].idRepuesto == idRepuesto) {
+            o->detalles[i].cantidad += cantidad;
+            encontrado = true;
+            break;
+        }
+    }
+
+    if (!encontrado) {
+        if (o->numDetalles >= o->capacidadDetalles) {
+            int nuevaCapacidad = o->capacidadDetalles * 2;
+            detalleOrden* nuevosDetalles = new detalleOrden[nuevaCapacidad];
+            for (int i = 0; i < o->numDetalles; i++) {
+                nuevosDetalles[i] = o->detalles[i];
+            }
+            delete[] o->detalles;
+            o->detalles = nuevosDetalles;
+            o->capacidadDetalles = nuevaCapacidad;
+        }
+
+        o->detalles[o->numDetalles].idRepuesto = idRepuesto;
+        o->detalles[o->numDetalles].cantidad = cantidad;
+        o->detalles[o->numDetalles].precioUnitario = r->precio;
+        o->numDetalles++;
+    }
+
+    r->stock -= cantidad;
+    return true;
+}
+
+bool quitarRepuestoDeOrden(sysTaller &s, int idOrden, int idRepuesto) {
+    ordenServicio* o = buscarOrdenPorID(s, idOrden);
+    if (o == nullptr || strcmp(o->estado, "ABIERTA") != 0) return false;
+
+    int index = -1;
+    for (int i = 0; i < o->numDetalles; i++) {
+        if (o->detalles[i].idRepuesto == idRepuesto) {
+            index = i;
+            break;
+        }
+    }
+    if (index == -1) return false;
+
+    Repuesto* r = buscarRepuestoPorID(s, idRepuesto);
+    if (r != nullptr) {
+        r->stock += o->detalles[index].cantidad;
+    }
+
+    for (int i = index; i < o->numDetalles - 1; i++) {
+        o->detalles[i] = o->detalles[i + 1];
+    }
+    o->numDetalles--;
+    return true;
+}
+
+bool cerrarOrdenServicio(sysTaller &s, int idOrden, const char* fechaCierre, float manoObra) {
+    ordenServicio* o = buscarOrdenPorID(s, idOrden);
+    if (o == nullptr || strcmp(o->estado, "ABIERTA") != 0) return false; 
+    if (manoObra < 0) return false;
+
+    if (o->numDetalles == 0 && manoObra <= 0) return false;
+
+    o->manoObra = manoObra;
+    strcpy(o->fechaCierre, fechaCierre);
+    strcpy(o->estado, "CERRADA");
+    return true;
+}
+
+bool anularOrdenServicio(sysTaller &s, int idOrden) {
+    ordenServicio* o = buscarOrdenPorID(s, idOrden);
+    if (o == nullptr || (strcmp(o->estado, "ABIERTA") != 0 && strcmp(o->estado, "CERRADA") != 0)) {
+        return false;
+    }
+
+    for (int i = 0; i < o->numDetalles; i++) {
+        Repuesto* r = buscarRepuestoPorID(s, o->detalles[i].idRepuesto);
+        if (r != nullptr) {
+            r->stock += o->detalles[i].cantidad;
+        }
+    }
+
+    strcpy(o->estado, "ANULADA");
+    return true;
+}
+
+float calcularTotalOrden(const ordenServicio &o) {
+    float totalRepuestos = 0;
+    for (int i = 0; i < o.numDetalles; i++) {
+        totalRepuestos += (o.detalles[i].cantidad * o.detalles[i].precioUnitario);
+    }
+    return o.manoObra + totalRepuestos;
+}
+
+ordenServicio* buscarOrdenPorID(sysTaller &s, int id) {
+    for (int i = 0; i < s.numOrdenes; i++) {
+        if (s.ordenes[i].id == id) return &s.ordenes[i];
+    }
+    return nullptr;
+}
+
+ordenServicio** listarOrdenesPorEstado(sysTaller &s, const char* estado, int &cantidad) {
+    cantidad = 0;
+    for (int i = 0; i < s.numOrdenes; i++) {
+        if (strcmp(s.ordenes[i].estado, estado) == 0) {
+            cantidad++;
+        }
+    }
+    if (cantidad == 0) return nullptr;
+
+    ordenServicio** resultado = new ordenServicio*[cantidad];
+    int idx = 0;
+    for (int i = 0; i < s.numOrdenes; i++) {
+        if (strcmp(s.ordenes[i].estado, estado) == 0) {
+            resultado[idx++] = &s.ordenes[i];
+        }
+    }
+    return resultado;
+}

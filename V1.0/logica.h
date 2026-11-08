@@ -11,6 +11,8 @@ void liberarSistema(sysTaller &s);
 
 int leerEnteroSeguro(const string& mensaje, int min, int max);
 void leerTextoNoVacio(const string& mensaje, char destino[], int tamMax);
+bool contieneNumeros(const char* str);
+void leerTextoSoloLetras(const string& mensaje, char destino[], int tamMax);
 void leerFormatoFijo(const string& mensaje, char destino[], int longitudEsperada);
 float leerFlotanteSeguro(const string& mensaje, float min, float max);
 bool esSoloDigitos(const string& str);
@@ -26,13 +28,13 @@ bool eliminarVehiculo(sysTaller &s, int id);
 
 Mecanico* registrarMecanico(sysTaller &s, Mecanico datos);
 Mecanico* buscarMecanicoPorID(sysTaller &s, int id);
+Repuesto* buscarRepuestoPorCodigo(sysTaller s, const char* codigo);
 Mecanico* buscarMecanicoPorCedula(sysTaller &s, const char* cedula);
 Mecanico** listarMecanicos(sysTaller &s, int &cantidad);
 bool especialidadValida(const char* esp);
 
 Repuesto* registrarRepuesto(sysTaller &s, Repuesto datos);
 Repuesto* buscarRepuestoPorID(sysTaller &s, int id);
-Repuesto* buscarRepuestoPorCodigo(sysTaller &s, const char* codigo);
 bool registrarEntradaMercancia(sysTaller &s, int idRepuesto, int cantidadAdicional);
 Repuesto** listarRepuestos(sysTaller &s, int &cantidad);
 bool cambiarPrecioRepuesto(sysTaller &s, int idRepuesto, float nuevoPrecio);
