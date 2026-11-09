@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstring>
+#include <cctype>
 #include <string>
 #include "struct_taller.h"
 #include "logica.h"
@@ -243,7 +244,15 @@ void menuRegistrarMecanico(sysTaller &s) {
     
     leerTextoNoVacio("Cedula: ", m.cedula, 20);
     
-    leerTextoSoloLetras("Especialidad (MOTOR, FRENOS, ELECTRICIDAD, SUSPENSION, GENERAL): ", m.especialidad, 20);
+    do {
+        leerTextoNoVacio("Especialidad (MOTOR, FRENOS, ELECTRICIDAD, SUSPENSION, GENERAL): ", m.especialidad, sizeof(m.especialidad));
+        for (int i = 0; m.especialidad[i] != '\0'; i++) {
+            m.especialidad[i] = static_cast<char>(toupper(static_cast<unsigned char>(m.especialidad[i])));
+        }
+        if (!especialidadValida(m.especialidad)) {
+            cout << "[!] Especialidad invalida. Seleccione una de las opciones indicadas.\n";
+        }
+    } while (!especialidadValida(m.especialidad));
     
     leerFormatoFijo("Fecha de ingreso (YYYY-MM-DD): ", m.fechaIngreso, 10);
 

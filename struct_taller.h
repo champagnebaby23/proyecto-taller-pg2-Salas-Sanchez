@@ -1,8 +1,17 @@
 #ifndef STRUCT_TALLER_H
 #define STRUCT_TALLER_H
 
+#include <ctime>
 #include <string>
 using namespace std;
+
+// Estructura administrativa requerida para cada archivo (excepto taller.bin)
+struct ArchivoHeader {
+    int cantidadRegistros; // Total histórico (incluye eliminados lógicamente)
+    int proximoID;         // Siguiente ID a asignar
+    int registrosActivos;  // Registros con eliminado == false
+    int version;           // Versión del formato del archivo (iniciar en 1)
+};
 
 // Estructura del taller (Informacion unica)
 struct Taller {
@@ -10,6 +19,8 @@ struct Taller {
     char rif[20]; // Identificar fiscal
     char direccion[200]; // Ubicacion fisica del taller
     char telefono[20]; // Telefono de contacto
+    time_t fechaCreacion;
+    time_t fechaUltimaModificacion;
 };
 
 // Estructura del vehiculo
@@ -26,7 +37,10 @@ struct Vehiculo {
     char nombrePropietario[100];
     char cedulaPropietario[20];
     char telefonoPropietario[20];
-    char fechaRegistro[11]; // YYYY-MM-DD
+    bool eliminado; // Para el borrado lógico
+    time_t fechaCreacion;
+    time_t fechaUltimaModificacion;
+    
 };
 
 // Estructura del mecanico
@@ -37,6 +51,9 @@ struct Mecanico {
     char telefono[20];
     char especialidad[20]; // Validada como "MOTOR" "FRENOS", etc en la logica
     char fechaIngreso[11];
+    bool eliminado; // true = dado de baja
+    time_t fechaCreacion;
+    time_t fechaUltimaModificacion;
 };
 
 // Estructura del Repuesto
@@ -48,7 +65,9 @@ struct Repuesto {
     float precio; // Precio actual vigente  > 0
     int stock; // Unidades disponibles
     int stockmin; // Si stock <= stockmin se muestra 'Bajo stock'
-    char fechaRegistro[11];
+    bool eliminado;
+    time_t fechaCreacion;
+    time_t fechaUltimaModificacion;
 };
 
 // Estructura detalleOrden
@@ -74,43 +93,17 @@ struct ordenServicio {
     // Se calcula dinamicamente sumando manoObra + sumatoria(cantidad * precioUnitario)
     float manoObra;
 
-// Arreglo dinamico propio de cada orden de servicio
-// Al abrir la orden, se inicializa con new detalleOrden[2] (capacidad 2)
-detalleOrden* detalles;
-int numDetalles; // Cuantas lineas de repuestos tiene actualmente
-int capacidadDetalles; // Cuanta RAM esta asignada para la orden
+    detalleOrden detalles[15]; 
+    int numDetalles; 
+    bool eliminado;
+    time_t fechaCreacion;
+    time_t fechaUltimaModificacion;
 };
 
 // Estructura principal del sistema
+// El sysTaller gigante en RAM desaparece. Ya no hay arreglos dinámicos.
 struct sysTaller {
-    Taller taller; // Instancia unica con los datos del local
-
-    // Arreglo dinamico de vehiculos
-    Vehiculo* vehiculos; // Puntero al inicio del arreglo dinamico en RAM
-    int numVehiculos; // Cantidad de vehiculos registrados
-    int capacidadVehiculos; // Espacio reservado con new (inicia con 4)
-    
-    // Arreglo dinamico de mecanicos
-    Mecanico* mecanicos;
-    int numMecanicos;
-    int capacidadMecanicos; // Si num == capacidad se duplica la capacidad
-    
-    // Arreglo dinamico de repuestos
-    Repuesto* repuestos;
-    int numRepuestos;
-    int capacidadRepuestos;
-
-    // Arreglo dinamico de ordenes
-    ordenServicio* ordenes;
-    int numOrdenes;
-    int capacidadOrdenes;
-
-    // Generador de llaves primarias 'ID' 
-    // Se inicializan en 1, garantizan que cada orden tenga un id unico, incluso si se anulan ordenes anteriores
-    int siguienteIdVehiculo;
-    int siguienteIdMecanico;
-    int siguienteIdRepuesto;
-    int siguienteIdOrden;
+    Taller taller; 
 };
 
 #endif // STRUCT_TALLER_H

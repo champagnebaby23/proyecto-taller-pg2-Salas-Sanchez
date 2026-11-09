@@ -7,7 +7,6 @@
 #include <string>
 
 void inicializarSistema(sysTaller &s, const char* nombre, const char *rif, const char* dir, const char* tel);
-void liberarSistema(sysTaller &s);
 
 int leerEnteroSeguro(const string& mensaje, int min, int max);
 void leerTextoNoVacio(const string& mensaje, char destino[], int tamMax);
@@ -18,35 +17,39 @@ float leerFlotanteSeguro(const string& mensaje, float min, float max);
 bool esSoloDigitos(const string& str);
 void leerTelefonoSeguro(const string& mensaje, char destino[], int tamMax);
 
-Vehiculo* agregarVehiculo(sysTaller &s, Vehiculo datos);
-Vehiculo* buscarVehiculoPorID(sysTaller &s, int id);
-Vehiculo* buscarVehiculoPorPlaca(sysTaller &s, const char* placa);
-Vehiculo** buscarVehiculosPorPropietario(sysTaller &s, const char* subcadena, int &cantidad);
-Vehiculo** listarVehiculos(sysTaller &s, int &cantidad);
-bool actualizarVehiculo(sysTaller &s, int id, Vehiculo datos);
-bool eliminarVehiculo(sysTaller &s, int id);
+void inicializarArchivoBase(const char* ruta);
+long calcularPosicion(int id, size_t sizeEstructura);
 
-Mecanico* registrarMecanico(sysTaller &s, Mecanico datos);
-Mecanico* buscarMecanicoPorID(sysTaller &s, int id);
-Repuesto* buscarRepuestoPorCodigo(sysTaller s, const char* codigo);
-Mecanico* buscarMecanicoPorCedula(sysTaller &s, const char* cedula);
-Mecanico** listarMecanicos(sysTaller &s, int &cantidad);
+bool agregarVehiculo(Vehiculo &datos);
+bool buscarVehiculoPorID(int id, Vehiculo &resultado);
+bool buscarVehiculoPorPlaca(const char* placa, Vehiculo &resultado);
+bool buscarVehiculosPorPropietario(const char* subcadena, Vehiculo resultados[], int &cantidad);
+bool listarVehiculos(Vehiculo resultados[], int &cantidad);
+bool actualizarVehiculo(int id, Vehiculo datos);
+bool eliminarVehiculo(int id);
+
+bool registrarMecanico(Mecanico &datos);
+bool buscarMecanicoPorID(int id, Mecanico &resultado);
+bool buscarMecanicoPorCedula(const char* cedula, Mecanico &resultado);
+bool listarMecanicos(Mecanico resultados[], int &cantidad);
 bool especialidadValida(const char* esp);
+bool eliminarMecanico(int id);
 
-Repuesto* registrarRepuesto(sysTaller &s, Repuesto datos);
-Repuesto* buscarRepuestoPorID(sysTaller &s, int id);
-bool registrarEntradaMercancia(sysTaller &s, int idRepuesto, int cantidadAdicional);
-Repuesto** listarRepuestos(sysTaller &s, int &cantidad);
-bool cambiarPrecioRepuesto(sysTaller &s, int idRepuesto, float nuevoPrecio);
-bool eliminarRepuesto(sysTaller &s, int id);
+bool registrarRepuesto(Repuesto &datos);
+bool buscarRepuestoPorID(int id, Repuesto &resultado);
+bool buscarRepuestoPorCodigo(const char* codigo, Repuesto &resultado);
+bool registrarEntradaMercancia(int idRepuesto, int cantidadAdicional);
+bool listarRepuestos(Repuesto resultados[], int &cantidad);
+bool cambiarPrecioRepuesto(int idRepuesto, float nuevoPrecio);
+bool eliminarRepuesto(int id);
 
-ordenServicio* abrirOrdenServicio(sysTaller &s, int idVehiculo, int idMecanico, const char* fechaApertura, const char* descripcionFalla, int kmIngreso);
-bool agregarRepuestoAOrden(sysTaller &s, int idOrden, int idRepuesto, int cantidad);
-bool quitarRepuestoDeOrden(sysTaller &s, int idOrden, int idRepuesto);
-bool cerrarOrdenServicio(sysTaller &s, int idOrden, const char* fechaCierre, float manoObra);
-bool anularOrdenServicio(sysTaller &s, int idOrden);
+bool abrirOrdenServicio(int idVehiculo, int idMecanico, const char* fechaApertura, const char* descripcionFalla, int kmIngreso, ordenServicio &resultado);
+bool agregarRepuestoAOrden(int idOrden, int idRepuesto, int cantidad);
+bool quitarRepuestoDeOrden(int idOrden, int idRepuesto);
+bool cerrarOrdenServicio(int idOrden, const char* fechaCierre, float manoObra);
+bool anularOrdenServicio(int idOrden);
 float calcularTotalOrden(const ordenServicio &o);
-ordenServicio* buscarOrdenPorID(sysTaller &s, int id);
-ordenServicio** listarOrdenesPorEstado(sysTaller &s, const char* estado, int &cantidad);
+bool buscarOrdenPorID(int id, ordenServicio &resultado);
+bool listarOrdenesPorEstado(const char* estado, ordenServicio resultados[], int &cantidad);
 
 #endif
