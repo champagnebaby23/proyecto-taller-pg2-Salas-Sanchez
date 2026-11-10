@@ -370,9 +370,15 @@ void menuVehiculos(sysTaller &s) {
     } while(opcion != 0);
 }
 
+// #########
+// MECANICOS
+// #########
+
 void mostrarMecanico(Mecanico m) {
     cout << "----------------------------------------" << endl;
-    cout << "ID           : " << m.id << endl;
+    cout << "ID           : " << m.id;
+    if (m.eliminado) cout << " **(DADO DE BAJA)**"; // Regla visual nueva
+    cout << endl;
     cout << "Nombre       : " << m.nombre << endl;
     cout << "Cedula       : " << m.cedula << endl;
     cout << "Especialidad : " << m.especialidad << endl;
@@ -380,7 +386,7 @@ void mostrarMecanico(Mecanico m) {
     cout << "----------------------------------------" << endl;
 }
 
-void menuRegistrarMecanico(sysTaller &s) {
+void menuRegistrarMecanico() {
     Mecanico m;
     cout << "\n--- REGISTRAR MECANICO ---" << endl;
     
@@ -415,9 +421,8 @@ void menuRegistrarMecanico(sysTaller &s) {
     cin.ignore(10000, '\n');
 
     if (confirmacion == 'S' || confirmacion == 's') {
-        Mecanico* nuevo = registrarMecanico(s, m);
-        if (nuevo != nullptr) {
-            cout << "¡Mecanico registrado con ID #" << nuevo->id << "!" << endl;
+        if (registrarMecanico(m)) {
+            cout << "¡Mecanico registrado con ID #" << m.id << "!" << endl;
         } else {
             cout << "ERROR: Cedula duplicada o especialidad invalida." << endl;
         }
@@ -426,52 +431,81 @@ void menuRegistrarMecanico(sysTaller &s) {
     }
 }
 
-void menuBuscarMecanicoPorID(sysTaller &s) {
+void menuBuscarMecanicoPorID() {
     cout << "\n--- BUSCAR MECANICO POR ID ---" << endl;
     
     int idBuscado = leerEnteroSeguro("Ingrese el ID del mecanico a buscar: ", 1, 999999);
     
-    Mecanico* m = buscarMecanicoPorID(s, idBuscado);
-    
-    if (m != nullptr) {
+    Mecanico m;
+    // Si la función retorna true, la variable 'm' ya tiene los datos copiados del disco
+    if (buscarMecanicoPorID(idBuscado, m)) {
         cout << "\n¡Mecanico encontrado!" << endl;
-        mostrarMecanico(*m);
+        mostrarMecanico(m);
     } else {
         cout << "ERROR: No se encontro ningun mecanico registrado con el ID #" << idBuscado << "." << endl;
     }
 }
 
-void menuBuscarMecanicoPorCedula(sysTaller &s) {
+void menuBuscarMecanicoPorCedula() {
     cout << "\n--- BUSCAR MECANICO POR CEDULA ---" << endl;
     
     char cedula[20];
     leerTextoNoVacio("Ingrese la cedula del mecanico a buscar: ", cedula, 20);
     
-    Mecanico* m = buscarMecanicoPorCedula(s, cedula);
-    
-    if (m != nullptr) {
+    Mecanico m;
+    if (buscarMecanicoPorCedula(cedula, m)) {
         cout << "\n¡Mecanico encontrado!" << endl;
-        mostrarMecanico(*m);
+        mostrarMecanico(m);
     } else {
-        cout << "ERROR: No se encontro ningun mecanico registrado con la cedula '" << cedula << "'." << endl;
+        cout << "ERROR: No se encontro ningun mecanico activo con la cedula '" << cedula << "'." << endl;
     }
 }
 
-void menuListarMecanicos(sysTaller &s) {
+void menuListarMecanicos() {
+    Mecanico lista[100]; // Arreglo estático temporal para recibir los datos sin usar 'new'
     int cantidad = 0;
-    Mecanico** lista = listarMecanicos(s, cantidad);
-    cout << "\n--- LISTADO DE MECANICOS ---" << endl;
-    if (cantidad == 0 || lista == nullptr) {
-        cout << "No hay mecanicos registrados." << endl;
-        return;
+    
+    if (listarMecanicos(lista, cantidad)) {
+        cout << "\n--- LISTADO DE MECANICOS ---" << endl;
+        for (int i = 0; i < cantidad; i++) {
+            mostrarMecanico(lista[i]);
+        }
+        cout << "Total de mecanicos listados: " << cantidad << endl;
+    } else {
+        cout << "No hay mecanicos registrados en el sistema." << endl;
     }
-    for (int i = 0; i < cantidad; i++) {
-        mostrarMecanico(*lista[i]);
-    }
-    delete[] lista;
 }
 
-void menuMecanicos(sysTaller &s) {
+void menuEliminarMecanico() {
+    cout << "\n--- DAR DE BAJA A MECANICO ---" << endl;
+    
+    int id = leerEnteroSeguro("Ingrese el ID del mecanico a dar de baja: ", 1, 999999);
+
+    char confirmacion;
+    do {
+        cout << "¿Esta seguro de dar de baja a este mecanico? (Borrado logico) (S/N): ";
+        cin >> confirmacion;
+        
+        if (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n') {
+            cout << "[!] Entrada invalida. Ingrese S para Si o N para No.\n";
+            cin.clear();
+            cin.ignore(10000, '\n');
+        }
+    } while (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n');
+    cin.ignore(10000, '\n');
+
+    if (confirmacion == 'S' || confirmacion == 's') {
+        if (eliminarMecanico(id)) {
+            cout << "¡Mecanico dado de baja exitosamente!" << endl;
+        } else {
+            cout << "ERROR: El mecanico no existe o tiene ordenes ABIERTAS, por lo que no puede ser dado de baja." << endl;
+        }
+    } else {
+        cout << "Operacion cancelada." << endl;
+    }
+}
+
+void menuMecanicos() {
     int opcion;
     do {
         cout << "\n=== GESTION DE MECANICOS ===" << endl;
@@ -479,14 +513,20 @@ void menuMecanicos(sysTaller &s) {
         cout << "2. Buscar mecanico por ID" << endl;
         cout << "3. Buscar mecanico por cedula" << endl;
         cout << "4. Listar mecanicos" << endl;
+        cout << "5. Dar de baja mecanico" << endl;
         cout << "0. Volver" << endl;
-        cout << "Seleccione opcion: ";
-        cin >> opcion;
-        if (opcion == 1) menuRegistrarMecanico(s);
-        else if (opcion == 2) menuBuscarMecanicoPorID(s);
-        else if (opcion == 3) menuBuscarMecanicoPorCedula(s);
-        else if (opcion == 4) menuListarMecanicos(s);
-        else cout << "Opcion invalida, intente nuevamente" << endl;
+        
+        opcion = leerEnteroSeguro("Seleccione opcion: ", 0, 5);
+        
+        switch(opcion) {
+            case 1: menuRegistrarMecanico(); break;
+            case 2: menuBuscarMecanicoPorID(); break;
+            case 3: menuBuscarMecanicoPorCedula(); break;
+            case 4: menuListarMecanicos(); break;
+            case 5: menuEliminarMecanico(); break;
+            case 0: break;
+            default: cout << "Opcion invalida, intente nuevamente" << endl;
+        }
     } while(opcion != 0);
 }
 

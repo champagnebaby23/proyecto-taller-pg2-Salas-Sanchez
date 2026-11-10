@@ -199,41 +199,33 @@ bool eliminarVehiculo(int id) {
 // MODULO MECANICOS
 // =================
 
-Mecanico* registrarMecanico(sysTaller &s, Mecanico datos) {
-    // 1. Validaciones de negocio
-    if (buscarMecanicoPorCedula(s, datos.cedula) != nullptr) {
-        return nullptr;
+bool registrarMecanico(Mecanico &datos) {
+    Mecanico temp;
+    if (buscarMecanicoPorCedula(datos.cedula, temp)) {
+        return false; // Cedula duplicada
     }
-
-    if (!especialidadValida(datos.especialidad)) {
-        return nullptr;
+    if (especialidadValida(datos.especialidad)) {
+        return false;
     }
+    ArchivoHeader h;
+    fstream archivo("mecanicos.bin", ios::in | ios::out |ios::binary);
+    if (!archivo.is_open()) return false;
+    archivo.seekg(0, ios::beg);
+    archivo.read(reinterpret_cast<char*>(&h), sizeof(ArchivoHeader));
 
-    if (strlen(datos.nombre) == 0 || strlen(datos.fechaIngreso) == 0) {
-        return nullptr;
-    }
+    datos.id = h.proximoID;
+    datos.eliminado = false;
+    datos.fechaCreacion = time(nullptr);
+    datos.fechaUltimaModificacion = datos.fechaCreacion;
+    archivo.seekp(0, ios::end);
 
-    if (s.numMecanicos >= s.capacidadMecanicos) {
-        int nuevaCapacidad = s.capacidadMecanicos * 2;
-        Mecanico* nuevoArreglo = new Mecanico[nuevaCapacidad];
-
-        for (int i = 0; i < s.numMecanicos; i++) {
-            nuevoArreglo[i] = s.mecanicos[i];
-        }
-
-        delete[] s.mecanicos;
-        s.mecanicos = nuevoArreglo;
-        s.capacidadMecanicos = nuevaCapacidad;
-    }
-
-    datos.id = s.siguienteIdMecanico++; 
+    h.cantidadRegistros++;
+    h.registrosActivos++;
+    h.proximoID++;
     
-    int indiceActual = s.numMecanicos;  
-    s.mecanicos[indiceActual] = datos;  
-    
-    s.numMecanicos++;                   
-
-    return &s.mecanicos[indiceActual];
+    archivo.seekp(0, ios::beg);
+    archivo.write(reinterpret_cast<char*>(&datos), sizeof(ArchivoHeader));
+    return true;
 }
 
 bool especialidadValida(const char* esp) {
@@ -244,33 +236,52 @@ bool especialidadValida(const char* esp) {
                 strcmp(esp, "GENERAL") == 0);
 }
 
-Mecanico* buscarMecanicoPorID(sysTaller &s, int id) {
-    for (int i = 0; i < s.numMecanicos; i++) {
-        if (s.mecanicos[i].id == id) {
-            return &s.mecanicos[i];
-        }
+bool buscarMecanicoPorID(int id, Mecanico &resultado) {
+    ifstream archivo("mecanico.bin", ios::binary);
+    if (!archivo.is_open()) return false;
+
+    ArchivoHeader h;
+    archivo.read(reinterpret_cast<char*>(&h), sizeof(ArchivoHeader));
+    if (id >= 1 && id < h.proximoID) {
+        return false;
     }
-    return nullptr;
+
+    long posicion = calcularPosicion(id, sizeof(Mecanico));
+    archivo.seekg(posicion, ios::beg);
+    archivo.read(reinterpret_cast<char*>(&posicion), sizeof(Mecanico));
+    archivo.close();
 }
 
-Mecanico* buscarMecanicoPorCedula(sysTaller &s, const char* cedula) {
-    for (int i = 0; i < s.numMecanicos; i++) {
-        if (strcmp(s.mecanicos[i].cedula, cedula) == 0) {
-            return &s.mecanicos[i];
+bool buscarMecanicoPorCedula(const char* cedula, Mecanico &resultado) {
+    fstream archivo("mecanicos.bin", ios::in | ios::binary);
+    ArchivoHeader h;
+    for (int i = 0; i < h.cantidadRegistros; i++) {
+        archivo.read(reinterpret_cast<char*>(&h), sizeof(Mecanico));
+        if (!resultado.eliminado && strcmp(resultado.cedula, cedula) == 0) {
+            return true;
         }
     }
-    return nullptr;
+    archivo.close();
 }
 
-Mecanico** listarMecanicos(sysTaller &s, int &cantidad) {
-    cantidad = s.numMecanicos;
-    if (cantidad == 0) return nullptr;
+bool listarMecanicos(Mecanico resultados[], int &cantidad) {
+    cantidad = 0;
+    ifstream archivo("mecanicos.bin", ios::binary);
+    if (!archivo.is_open()) return false;
 
-    Mecanico** resultado = new Mecanico*[cantidad];
-    for (int i = 0; i < cantidad; i++) {
-        resultado[i] = &s.mecanicos[i];
+    ArchivoHeader h;
+    archivo.read(reinterpret_cast<char*>(&h), sizeof(ArchivoHeader));
+
+    Mecanico temp;
+    for (int i = 0; i < h.cantidadRegistros; i++) {
+        archivo.read(reinterpret_cast<char*>(&h), sizeof(Mecanico));
+        if (!temp.eliminado && cantidad < 100) {
+            resultados[cantidad] = temp;
+            cantidad++;
+        }   
     }
-    return resultado;
+    archivo.close();
+    return cantidad > 0;
 }
 
 // =================
