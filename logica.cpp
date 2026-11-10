@@ -36,7 +36,7 @@ bool cargarTaller(Taller &t) {
     }
     
     // Como es la excepción, no tiene ArchivoHeader. Leemos directo la estructura
-    archivo.read((char*)&t, sizeof(Taller));
+    archivo.read(reinterpreter_cast<char*>(&t), sizeof(Taller));
     archivo.close();
     return true;
 }
@@ -47,7 +47,7 @@ void guardarTaller(Taller t) {
     
     // Se guarda como un único registro sin header
     fstream archivo("taller.bin", ios::out | ios::binary);
-    archivo.write((char*)&t, sizeof(Taller));
+    archivo.write(reinterpreter_cast<char*>(&t), sizeof(Taller));
     archivo.close();
 }
 
@@ -61,7 +61,7 @@ void inicializarArchivoBase(const char* ruta) {
         archivo.clear();
         archivo.open(ruta, ios::out | ios::binary);
         ArchivoHeader h = {0, 1, 0, 1}; // cant:0, proxID:1, activos:0, ver:1
-        archivo.write((char*)&h, sizeof(ArchivoHeader));
+        archivo.write(reinterpreter_cast<chat*>(&h), sizeof(ArchivoHeader));
         archivo.close();
     } else {
         archivo.close();
@@ -88,7 +88,7 @@ bool agregarVehiculo(Vehiculo &datos) {
     // Leer Header
     ArchivoHeader h;
     archivo.seekg(0, ios::beg);
-    archivo.read((char*)&h, sizeof(ArchivoHeader));
+    archivo.read(reinterpreter_cast<char*>(&h), sizeof(ArchivoHeader));
 
     // Preparar metadatos
     datos.id = h.proximoID;
@@ -98,7 +98,7 @@ bool agregarVehiculo(Vehiculo &datos) {
 
     // Escribir al final
     archivo.seekp(0, ios::end);
-    archivo.write((char*)&datos, sizeof(Vehiculo));
+    archivo.write(reinterpreter_cast<char*>(&datos), sizeof(Vehiculo));
 
     // Actualizar Header
     h.cantidadRegistros++;
@@ -106,7 +106,7 @@ bool agregarVehiculo(Vehiculo &datos) {
     h.proximoID++;
     
     archivo.seekp(0, ios::beg);
-    archivo.write((char*)&h, sizeof(ArchivoHeader));
+    archivo.write(reinterpreter_cast<char*>(&h), sizeof(ArchivoHeader));
     archivo.close();
     
     return true;
