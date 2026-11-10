@@ -3,20 +3,10 @@
 
 #include "struct_taller.h"
 
-#include <iostream>
 #include <string>
 
 void inicializarSistema(sysTaller &s, const char* nombre, const char *rif, const char* dir, const char* tel);
 void liberarSistema(sysTaller &s);
-
-int leerEnteroSeguro(const string& mensaje, int min, int max);
-void leerTextoNoVacio(const string& mensaje, char destino[], int tamMax);
-bool contieneNumeros(const char* str);
-void leerTextoSoloLetras(const string& mensaje, char destino[], int tamMax);
-void leerFormatoFijo(const string& mensaje, char destino[], int longitudEsperada);
-float leerFlotanteSeguro(const string& mensaje, float min, float max);
-bool esSoloDigitos(const string& str);
-void leerTelefonoSeguro(const string& mensaje, char destino[], int tamMax);
 
 Vehiculo* agregarVehiculo(sysTaller &s, Vehiculo datos);
 Vehiculo* buscarVehiculoPorID(sysTaller &s, int id);

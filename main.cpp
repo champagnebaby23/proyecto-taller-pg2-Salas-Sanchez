@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <cstring>
 #include <cctype>
+#include <sstream>
 #include <string>
 #include "struct_taller.h"
 #include "logica.h"
@@ -16,6 +17,164 @@ void menuVehiculos(sysTaller &s);
 void menuMecanicos(sysTaller &s);
 void menuRepuestos(sysTaller &s);
 void menuOrdenes(sysTaller &s);
+
+void leerTextoNoVacio(const string &mensaje, char destino[], int tamMax) {
+    string entrada;
+    do {
+        cout << mensaje;
+        cin >> ws;
+        getline(cin, entrada);
+
+        if (entrada.empty()) { // Verifica que lo que se introducio no sea espacio en blanco
+            cout << "Este campo no puede estar vacio, intente nuevamente" << endl;
+        } else if (entrada.length() >= (size_t)tamMax) { // Si el texto se extiende hasta un tama;o asignado, salta un mensaje de error
+            cout << "El texto es demasiado largo, (maximo " << tamMax - 1 << " caracteres), intente nuevamente" << endl;
+            entrada = "";
+        }
+    } while (entrada.empty());
+
+    strcpy (destino, entrada.c_str());
+}
+
+int leerEnteroSeguro(const string& mensaje, int min, int max) {
+    int valor;
+    while (true) {
+        cout << mensaje;
+        string entrada;
+        cin >> ws;
+        getline(cin, entrada);
+        istringstream lectura(entrada);
+
+        char sobrante;
+        if (!(lectura >> valor) || (lectura >> sobrante)) {
+            cout << "Entrada inválida, inserte un valor numérico." << endl;
+        } else if (valor < min || valor > max) {
+            cout << "Error: El valor debe estar entre " << min << " y " << max << "." << endl;
+        } else {
+            return valor;
+        }
+    }
+}
+
+bool contieneNumeros(const char* str) {
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (isdigit(str[i])) {
+            return true; // Encontró un número
+        }
+    }
+    return false;
+}
+
+void leerTextoSoloLetras(const string& mensaje, char destino[], int tamMax) {
+    while (true) {
+        cout << mensaje;
+        cin >> ws; // Limpia espacios iniciales y saltos de línea pendientes
+        cin.getline(destino, tamMax);
+
+        // Validar si está vacío
+        if (strlen(destino) == 0) {
+            cout << "[!] El campo no puede estar vacío. Intente de nuevo." << endl;
+        } 
+        // Validar si contiene números
+        else if (contieneNumeros(destino)) {
+            cout << "[!] Entrada inválida. No se permiten números en este campo." << endl;
+        } 
+        else {
+            break;
+        }
+    }
+}
+
+// Mismo funcionamiento
+void leerFormatoFijo(const string& mensaje, char destino[], int longitudEsperada) {
+    string entrada;
+    while (true) {
+        cout << mensaje;
+        cin >> ws;
+        getline(cin, entrada);
+
+        bool formatoValido = true;
+
+        if (entrada.length() != (size_t)longitudEsperada) {
+            formatoValido = false;
+        } else {
+            for (int i = 0; i < longitudEsperada; i++) {
+                if ((i == 4 || i == 7) && entrada[i] == '-') {
+                    continue;
+                }
+                if (!isdigit(static_cast<unsigned char>(entrada[i]))) {
+                    formatoValido = false;
+                    break;
+                }
+            }
+        }
+
+        if (formatoValido) {
+            strcpy(destino, entrada.c_str());
+            return;
+        }
+
+        cout << "[!] Formato invalido. Debe tener exactamente " << longitudEsperada
+             << " caracteres y solo numeros con guiones en la posicion correcta (Ej: 2026-11-03).\n";
+    }
+}
+
+bool esSoloDigitos(const string& str) {
+    if (str.empty()) return false;
+    for (char c : str) {
+        if (!isdigit(c)) { // Si encuentra algo que no sea un número (0-9)
+            return false;
+        }
+    }
+    return true;
+}
+
+void leerTelefonoSeguro(const string& mensaje, char destino[], int tamMax) {
+    string entrada;
+    bool valido = true;
+    do {
+        valido = true;
+        cout << mensaje;
+        cin >> ws;
+        getline(cin, entrada);
+        
+        if (entrada.empty()) {
+            cout << "[!] Este campo no puede estar vacio. Intente nuevamente.\n";
+            valido = false;
+        } else if (entrada.length() >= (size_t)tamMax) {
+            cout << "[!] El texto es demasiado largo. Intente nuevamente.\n";
+            valido = false;
+        } else {
+            // Verificamos que cada carácter sea un número o un guion -
+            for (char c : entrada) {
+                if (!isdigit(c) && c != '-') {
+                    cout << "[!] Error: El telefono solo debe contener numeros o guiones (-).\n";
+                    valido = false;
+                    break;
+                }
+            }
+        }
+    } while (!valido);
+
+    strcpy(destino, entrada.c_str());
+}
+
+float leerFlotanteSeguro(const string& mensaje, float min, float max) {
+    float valor;
+    while (true) {
+        cout << mensaje;
+        cin >> valor;
+
+        if (cin.fail() || valor < min || valor > max) {
+            cout << "Entrada inválida, inserte un valor numérico válido." << endl;
+            cin.clear();
+            cin.ignore(10000, '\n');
+        } else {
+            cin.ignore(10000, '\n'); // Limpiar el ENTER pendiente
+            return valor;
+        }
+    }
+}
 
 // ====================
 // MODULO DE VEHICULOS
