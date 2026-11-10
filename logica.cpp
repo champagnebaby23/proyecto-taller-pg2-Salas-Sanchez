@@ -25,6 +25,32 @@ bool contieneSubcadena(const char* texto, const char* subcadena) {
     return strstr(t, sub) != nullptr;
 }
 
+// ========================
+// CONFIGURACION DEL TALLER
+// ========================
+
+bool cargarTaller(Taller &t) {
+    fstream archivo("taller.bin", ios::in | ios::binary);
+    if (!archivo.is_open()) {
+        return false; // El archivo no existe, es el primer arranque
+    }
+    
+    // Como es la excepción, no tiene ArchivoHeader. Leemos directo la estructura
+    archivo.read((char*)&t, sizeof(Taller));
+    archivo.close();
+    return true;
+}
+
+void guardarTaller(Taller t) {
+    t.fechaCreacion = time(nullptr);
+    t.fechaUltimaModificacion = t.fechaCreacion;
+    
+    // Se guarda como un único registro sin header
+    fstream archivo("taller.bin", ios::out | ios::binary);
+    archivo.write((char*)&t, sizeof(Taller));
+    archivo.close();
+}
+
 // ########################
 // MOTOR BASE: PERSISTENCIA
 // ########################
@@ -287,112 +313,157 @@ bool listarMecanicos(Mecanico resultados[], int &cantidad) {
 // =================
 // MODULO REPUESTOS
 // =================
-Repuesto* registrarRepuesto(sysTaller &s, Repuesto datos) {
 
-    if (buscarRepuestoPorCodigo(s, datos.codigo) != nullptr) {
-        return nullptr;
-    }
-    if (datos.precio <= 0 || datos.stock < 0 || datos.stockmin < 0) {
-        return nullptr;
-    }
-    if (strlen(datos.nombre) == 0 || strlen(datos.fechaRegistro) == 0) {
-        return nullptr;
-    }
+bool registrarRepuesto(Repuesto &datos) {
+    Repuesto temp;
+    // Validamos que el código no exista previamente y que los valores sean positivos[cite: 7]
+    if (buscarRepuestoPorCodigo(datos.codigo, temp)) return false; 
+    if (datos.precio <= 0 || datos.stock < 0 || datos.stockmin < 0) return false;
 
-    if (s.numRepuestos >= s.capacidadRepuestos) {
-        int nuevaCapacidad = s.capacidadRepuestos * 2;
-        Repuesto* nuevoArreglo = new Repuesto[nuevaCapacidad];
+    fstream archivo("repuestos.bin", ios::in | ios::out | ios::binary);
+    if (!archivo.is_open()) return false;
 
-        for (int i = 0; i < s.numRepuestos; i++) {
-            nuevoArreglo[i] = s.repuestos[i];
-        }
+    ArchivoHeader h;
+    archivo.seekg(0, ios::beg);
+    archivo.read((char*)&h, sizeof(ArchivoHeader));
 
-        delete[] s.repuestos;
-        s.repuestos = nuevoArreglo;
-        s.capacidadRepuestos = nuevaCapacidad;
-    }
+    datos.id = h.proximoID;
+    datos.eliminado = false;
+    datos.fechaCreacion = time(nullptr);
+    datos.fechaUltimaModificacion = datos.fechaCreacion;
 
-    datos.id = s.siguienteIdRepuesto++; 
+    archivo.seekp(0, ios::end);
+    archivo.write((char*)&datos, sizeof(Repuesto));
+
+    h.cantidadRegistros++;
+    h.registrosActivos++;
+    h.proximoID++;
     
-    int indiceActual = s.numRepuestos;  
-    s.repuestos[indiceActual] = datos;  
+    archivo.seekp(0, ios::beg);
+    archivo.write((char*)&h, sizeof(ArchivoHeader));
+    archivo.close();
     
-    s.numRepuestos++; 
-
-    return &s.repuestos[indiceActual];
-}
-
-Repuesto* buscarRepuestoPorID(sysTaller &s, int id) {
-    for (int i = 0; i < s.numRepuestos; i++) {
-        if (s.repuestos[i].id == id) {
-            return &s.repuestos[i];
-        }
-    }
-    return nullptr;
-}
-
-Repuesto* buscarRepuestoPorCodigo(sysTaller s, const char* codigo) {
-    for (int i = 0; i < s.numRepuestos; i++) {
-        if (strcmp(s.repuestos[i].codigo, codigo) == 0) {
-            return &s.repuestos[i];
-        }
-    }
-    return nullptr;
-}
-
-bool registrarEntradaMercancia(sysTaller &s, int idRepuesto, int cantidadAdicional) {
-    if (cantidadAdicional <= 0) return false;
-    Repuesto* r = buscarRepuestoPorID(s, idRepuesto);
-    if (r == nullptr) return false;
-    r->stock += cantidadAdicional;
     return true;
 }
 
-Repuesto** listarRepuestos(sysTaller &s, int &cantidad) {
-    cantidad = s.numRepuestos;
-    if (cantidad == 0) return nullptr;
+bool buscarRepuestoPorID(int id, Repuesto &resultado) {
+    fstream archivo("repuestos.bin", ios::in | ios::binary);
+    if (!archivo.is_open()) return false;
 
-    Repuesto** resultado = new Repuesto*[cantidad];
-    for (int i = 0; i < cantidad; i++) {
-        resultado[i] = &s.repuestos[i];
+    ArchivoHeader h;
+    archivo.read((char*)&h, sizeof(ArchivoHeader));
+    if (id < 1 || id >= h.proximoID) {
+        archivo.close();
+        return false;
     }
-    return resultado;
+
+    // ACCESO ALEATORIO
+    long posicion = calcularPosicion(id, sizeof(Repuesto));
+    archivo.seekg(posicion, ios::beg);
+    archivo.read((char*)&resultado, sizeof(Repuesto));
+    archivo.close();
+
+    return !resultado.eliminado;
 }
 
-bool cambiarPrecioRepuesto(sysTaller &s, int idRepuesto, float nuevoPrecio) {
+bool buscarRepuestoPorCodigo(const char* codigo, Repuesto &resultado) {
+    fstream archivo("repuestos.bin", ios::in | ios::binary);
+    if (!archivo.is_open()) return false;
+
+    ArchivoHeader h;
+    archivo.read((char*)&h, sizeof(ArchivoHeader));
+
+    for (int i = 0; i < h.cantidadRegistros; i++) {
+        archivo.read((char*)&resultado, sizeof(Repuesto));
+        if (!resultado.eliminado && strcmp(resultado.codigo, codigo) == 0) {
+            archivo.close();
+            return true;
+        }
+    }
+    archivo.close();
+    return false;
+}
+
+bool registrarEntradaMercancia(int idRepuesto, int cantidadAdicional) {
+    if (cantidadAdicional <= 0) return false;
+    
+    Repuesto r;
+    if (!buscarRepuestoPorID(idRepuesto, r)) return false;
+
+    // Actualizamos los datos
+    r.stock += cantidadAdicional;
+    r.fechaUltimaModificacion = time(nullptr);
+
+    // Sobrescribimos en la misma posición exacta
+    fstream archivo("repuestos.bin", ios::in | ios::out | ios::binary);
+    long posicion = calcularPosicion(idRepuesto, sizeof(Repuesto));
+    archivo.seekp(posicion, ios::beg);
+    archivo.write((char*)&r, sizeof(Repuesto));
+    archivo.close();
+
+    return true;
+}
+
+bool listarRepuestos(Repuesto resultados[], int &cantidad) {
+    cantidad = 0;
+    fstream archivo("datos/repuestos.bin", ios::in | ios::binary);
+    if (!archivo.is_open()) return false;
+
+    ArchivoHeader h;
+    archivo.read((char*)&h, sizeof(ArchivoHeader));
+
+    Repuesto temp;
+    for (int i = 0; i < h.cantidadRegistros; i++) {
+        archivo.read((char*)&temp, sizeof(Repuesto));
+        if (!temp.eliminado && cantidad < 100) {
+            resultados[cantidad] = temp;
+            cantidad++;
+        }
+    }
+    archivo.close();
+    return cantidad > 0;
+}
+
+bool cambiarPrecioRepuesto(int idRepuesto, float nuevoPrecio) {
     if (nuevoPrecio <= 0) return false;
 
-    Repuesto* r = buscarRepuestoPorID(s, idRepuesto);
-    if (r == nullptr) return false;
+    Repuesto r;
+    if (!buscarRepuestoPorID(idRepuesto, r)) return false;
 
-    r->precio = nuevoPrecio;
+    r.precio = nuevoPrecio;
+    r.fechaUltimaModificacion = time(nullptr);
+
+    fstream archivo("repuestos.bin", ios::in | ios::out | ios::binary);
+    long posicion = calcularPosicion(idRepuesto, sizeof(Repuesto));
+    archivo.seekp(posicion, ios::beg);
+    archivo.write((char*)&r, sizeof(Repuesto));
+    archivo.close();
+
     return true;
 }
 
-bool eliminarRepuesto(sysTaller &s, int id) {
-    for (int i = 0; i < s.numOrdenes; i++) {
-        for (int j = 0; j < s.ordenes[i].numDetalles; j++) {
-            if (s.ordenes[i].detalles[j].idRepuesto == id) {
-                return false; // Rechazado: Romperia el historial del taller
-            }
-        }
-    }
+bool eliminarRepuesto(int id) {
+    Repuesto r;
+    if (!buscarRepuestoPorID(id, r)) return false;
 
-    int index = -1;
-    for (int i = 0; i < s.numRepuestos; i++) {
-        if (s.repuestos[i].id == id) {
-            index = i;
-            break;
-        }
-    }
-    
-    if (index == -1) return false;
+    // Se validara si aparece en una orden cuando se arme ordenes.bin
 
-    for (int i = index; i < s.numRepuestos - 1; i++) {
-        s.repuestos[i] = s.repuestos[i + 1];
-    }
-    
-    s.numRepuestos--;
+    r.eliminado = true;
+    r.fechaUltimaModificacion = time(nullptr);
+
+    fstream archivo("datos/repuestos.bin", ios::in | ios::out | ios::binary);
+    long posicion = calcularPosicion(id, sizeof(Repuesto));
+    archivo.seekp(posicion, ios::beg);
+    archivo.write((char*)&r, sizeof(Repuesto));
+
+    ArchivoHeader h;
+    archivo.seekg(0, ios::beg);
+    archivo.read((char*)&h, sizeof(ArchivoHeader));
+    h.registrosActivos--;
+    archivo.seekp(0, ios::beg);
+    archivo.write((char*)&h, sizeof(ArchivoHeader));
+
+    archivo.close();
     return true;
 }
 
@@ -400,152 +471,228 @@ bool eliminarRepuesto(sysTaller &s, int id) {
 // MODULO ORDENES DE SERVICIO
 // ===========================
 
-ordenServicio* abrirOrdenServicio(sysTaller &s, int idVehiculo, int idMecanico, const char* fechaApertura, const char* descripcionFalla, int kmIngreso) {
-    Vehiculo* v = buscarVehiculoPorID(s, idVehiculo);
-    if (v == nullptr) return nullptr;
+bool abrirOrdenServicio(int idVehiculo, int idMecanico, const char* fechaApertura, const char* descripcionFalla, int kmIngreso, ordenServicio &resultado) {
+    Vehiculo v;
+    if (!buscarVehiculoPorID(idVehiculo, v)) return false;
 
-    Mecanico* m = buscarMecanicoPorID(s, idMecanico);
-    if (m == nullptr) return nullptr;
+    Mecanico m;
+    if (!buscarMecanicoPorID(idMecanico, m) || m.eliminado) return false; // Mecánico debe estar activo
 
-    for (int i = 0; i < s.numOrdenes; i++) {
-        if (s.ordenes[i].idVehiculo == idVehiculo && strcmp(s.ordenes[i].estado, "ABIERTA") == 0) {
-            return nullptr; 
-        }
-    }
+    // Validar en el archivo de órdenes las reglas de negocio
+    fstream archivo("ordenes.bin", ios::in | ios::out | ios::binary);
+    if (!archivo.is_open()) return false;
+    
+    ArchivoHeader h;
+    archivo.read((char*)&h, sizeof(ArchivoHeader));
 
     int ordenesAbiertasMecanico = 0;
-    for (int i = 0; i < s.numOrdenes; i++) {    
-        if (s.ordenes[i].idMecanico == idMecanico && strcmp(s.ordenes[i].estado, "ABIERTA") == 0) {
-            ordenesAbiertasMecanico++;
+    ordenServicio temp;
+    
+    for (int i = 0; i < h.cantidadRegistros; i++) {
+        archivo.read((char*)&temp, sizeof(ordenServicio));
+        if (!temp.eliminado && strcmp(temp.estado, "ABIERTA") == 0) {
+            if (temp.idVehiculo == idVehiculo) {
+                archivo.close();
+                return false; // El vehículo ya tiene una orden abierta
+            }
+            if (temp.idMecanico == idMecanico) {
+                ordenesAbiertasMecanico++;
+            }
         }
     }
-    if (ordenesAbiertasMecanico >= 3) return nullptr;
-
-    if (kmIngreso < v->km) return nullptr;
-
-    v->km = kmIngreso;
-
-    if (s.numOrdenes >= s.capacidadOrdenes) {
-        int nuevaCapacidad = s.capacidadOrdenes * 2;
-        ordenServicio* nuevoArreglo = new ordenServicio[nuevaCapacidad];
-        for (int i = 0; i < s.numOrdenes; i++) {
-            nuevoArreglo[i] = s.ordenes[i];
-        }
-        delete[] s.ordenes;
-        s.ordenes = nuevoArreglo;
-        s.capacidadOrdenes = nuevaCapacidad;
+    
+    if (ordenesAbiertasMecanico >= 3) {
+        archivo.close();
+        return false; // Límite de 3 órdenes por mecánico
+    }
+    if (kmIngreso < v.km) {
+        archivo.close();
+        return false;
     }
 
-    ordenServicio nueva;
-    nueva.id = s.siguienteIdOrden++;
-    nueva.idVehiculo = idVehiculo;
-    nueva.idMecanico = idMecanico;
-    strcpy(nueva.fechaApertura, fechaApertura);
-    strcpy(nueva.fechaCierre, "");
-    strcpy(nueva.estado, "ABIERTA");
-    strcpy(nueva.descripcionFalla, descripcionFalla);
-    nueva.kmIngreso = kmIngreso;
-    nueva.manoObra = 0.0f;
+    // PASO 1: Actualizar kilometraje del vehículo
+    v.km = kmIngreso;
+    actualizarVehiculo(idVehiculo, v);
 
-    nueva.capacidadDetalles = 2;
-    nueva.numDetalles = 0;
-    nueva.detalles = new detalleOrden[nueva.capacidadDetalles];
+    // PASO 2: Construir y guardar la orden
+    resultado.id = h.proximoID;
+    resultado.idVehiculo = idVehiculo;
+    resultado.idMecanico = idMecanico;
+    strcpy(resultado.fechaApertura, fechaApertura);
+    strcpy(resultado.fechaCierre, "");
+    strcpy(resultado.estado, "ABIERTA");
+    strcpy(resultado.descripcionFalla, descripcionFalla);
+    resultado.kmIngreso = kmIngreso;
+    resultado.manoObra = 0.0f;
+    resultado.numDetalles = 0; // Inicia vacía
+    resultado.eliminado = false;
+    resultado.fechaCreacion = time(nullptr);
+    resultado.fechaUltimaModificacion = resultado.fechaCreacion;
 
-    s.ordenes[s.numOrdenes] = nueva;
-    return &s.ordenes[s.numOrdenes++];
+    archivo.clear();
+    archivo.seekp(0, ios::end);
+    archivo.write((char*)&resultado, sizeof(ordenServicio));
+
+    h.cantidadRegistros++;
+    h.registrosActivos++;
+    h.proximoID++;
+    archivo.seekp(0, ios::beg);
+    archivo.write((char*)&h, sizeof(ArchivoHeader));
+    
+    archivo.close();
+    return true;
 }
 
-bool agregarRepuestoAOrden(sysTaller &s, int idOrden, int idRepuesto, int cantidad) {
-    ordenServicio* o = buscarOrdenPorID(s, idOrden);
-    if (o == nullptr || strcmp(o->estado, "ABIERTA") != 0) return false; 
+bool agregarRepuestoAOrden(int idOrden, int idRepuesto, int cantidad) {
+    ordenServicio o;
+    if (!buscarOrdenPorID(idOrden, o) || strcmp(o.estado, "ABIERTA") != 0) return false;
     if (cantidad <= 0) return false;
 
-    Repuesto* r = buscarRepuestoPorID(s, idRepuesto);
-    if (r == nullptr || r->stock < cantidad) return false; 
+    Repuesto r;
+    if (!buscarRepuestoPorID(idRepuesto, r) || r.stock < cantidad) return false;
+
+    r.stock -= cantidad;
+    fstream archivoRepuestos("repuestos.bin", ios::in | ios::out | ios::binary);
+    long posRep = calcularPosicion(idRepuesto, sizeof(Repuesto));
+    archivoRepuestos.seekp(posRep, ios::beg);
+    archivoRepuestos.write((char*)&r, sizeof(Repuesto));
+    archivoRepuestos.close();
 
     bool encontrado = false;
-    for (int i = 0; i < o->numDetalles; i++) {
-        if (o->detalles[i].idRepuesto == idRepuesto) {
-            o->detalles[i].cantidad += cantidad;
+    for (int i = 0; i < o.numDetalles; i++) {
+        if (o.detalles[i].idRepuesto == idRepuesto) {
+            o.detalles[i].cantidad += cantidad;
             encontrado = true;
             break;
         }
     }
 
     if (!encontrado) {
-        if (o->numDetalles >= o->capacidadDetalles) {
-            int nuevaCapacidad = o->capacidadDetalles * 2;
-            detalleOrden* nuevosDetalles = new detalleOrden[nuevaCapacidad];
-            for (int i = 0; i < o->numDetalles; i++) {
-                nuevosDetalles[i] = o->detalles[i];
-            }
-            delete[] o->detalles;
-            o->detalles = nuevosDetalles;
-            o->capacidadDetalles = nuevaCapacidad;
-        }
-
-        o->detalles[o->numDetalles].idRepuesto = idRepuesto;
-        o->detalles[o->numDetalles].cantidad = cantidad;
-        o->detalles[o->numDetalles].precioUnitario = r->precio;
-        o->numDetalles++;
+        if (o.numDetalles >= 15) return false;
+        o.detalles[o.numDetalles].idRepuesto = idRepuesto;
+        o.detalles[o.numDetalles].cantidad = cantidad;
+        o.detalles[o.numDetalles].precioUnitario = r.precio; 
+        o.numDetalles++;
     }
 
-    r->stock -= cantidad;
+    fstream archivoOrdenes("ordenes.bin", ios::in | ios::out | ios::binary);
+    long posOrd = calcularPosicion(idOrden, sizeof(ordenServicio));
+    archivoOrdenes.seekp(posOrd, ios::beg);
+    archivoOrdenes.write((char*)&o, sizeof(ordenServicio));
+    archivoOrdenes.close();
+
     return true;
 }
 
-bool quitarRepuestoDeOrden(sysTaller &s, int idOrden, int idRepuesto) {
-    ordenServicio* o = buscarOrdenPorID(s, idOrden);
-    if (o == nullptr || strcmp(o->estado, "ABIERTA") != 0) return false;
+bool quitarRepuestoDeOrden(int idOrden, int idRepuesto) {
+    ordenServicio o;
+    if (!buscarOrdenPorID(idOrden, o) || strcmp(o.estado, "ABIERTA") != 0) return false;
 
+    // Buscar en qué índice de la orden está el repuesto
     int index = -1;
-    for (int i = 0; i < o->numDetalles; i++) {
-        if (o->detalles[i].idRepuesto == idRepuesto) {
+    for (int i = 0; i < o.numDetalles; i++) {
+        if (o.detalles[i].idRepuesto == idRepuesto) {
             index = i;
             break;
         }
     }
     if (index == -1) return false;
 
-    Repuesto* r = buscarRepuestoPorID(s, idRepuesto);
-    if (r != nullptr) {
-        r->stock += o->detalles[index].cantidad;
+    // Devolver el stock al inventario
+    Repuesto r;
+    if (buscarRepuestoPorID(idRepuesto, r)) {
+        r.stock += o.detalles[index].cantidad;
+        r.fechaUltimaModificacion = time(nullptr);
+        
+        fstream archRep("datos/repuestos.bin", ios::in | ios::out | ios::binary);
+        long posRep = calcularPosicion(idRepuesto, sizeof(Repuesto));
+        archRep.seekp(posRep, ios::beg);
+        archRep.write((char*)&r, sizeof(Repuesto));
+        archRep.close();
     }
 
-    for (int i = index; i < o->numDetalles - 1; i++) {
-        o->detalles[i] = o->detalles[i + 1];
+    // Eliminar la línea del arreglo estático desplazando los elementos
+    for (int i = index; i < o.numDetalles - 1; i++) {
+        o.detalles[i] = o.detalles[i + 1];
     }
-    o->numDetalles--;
+    o.numDetalles--;
+    o.fechaUltimaModificacion = time(nullptr);
+
+    // Guardar la orden actualizada
+    fstream archOrd("ordenes.bin", ios::in | ios::out | ios::binary);
+    long posOrd = calcularPosicion(idOrden, sizeof(ordenServicio));
+    archOrd.seekp(posOrd, ios::beg);
+    archOrd.write((char*)&o, sizeof(ordenServicio));
+    archOrd.close();
+
     return true;
 }
 
-bool cerrarOrdenServicio(sysTaller &s, int idOrden, const char* fechaCierre, float manoObra) {
-    ordenServicio* o = buscarOrdenPorID(s, idOrden);
-    if (o == nullptr || strcmp(o->estado, "ABIERTA") != 0) return false; 
+bool cerrarOrdenServicio(int idOrden, const char* fechaCierre, float manoObra) {
+    ordenServicio o;
+    if (!buscarOrdenPorID(idOrden, o) || strcmp(o.estado, "ABIERTA") != 0) return false; 
     if (manoObra < 0) return false;
 
-    if (o->numDetalles == 0 && manoObra <= 0) return false;
+    // Debe quedar con al menos una linea o mano de obra > 0
+    if (o.numDetalles == 0 && manoObra <= 0) return false;
 
-    o->manoObra = manoObra;
-    strcpy(o->fechaCierre, fechaCierre);
-    strcpy(o->estado, "CERRADA");
+    o.manoObra = manoObra;
+    strcpy(o.fechaCierre, fechaCierre);
+    strcpy(o.estado, "CERRADA");
+    o.fechaUltimaModificacion = time(nullptr);
+
+    // Guardar los cambios
+    fstream archivo("ordenes.bin", ios::in | ios::out | ios::binary);
+    long posicion = calcularPosicion(idOrden, sizeof(ordenServicio));
+    archivo.seekp(posicion, ios::beg);
+    archivo.write((char*)&o, sizeof(ordenServicio));
+    archivo.close();
+
     return true;
 }
 
-bool anularOrdenServicio(sysTaller &s, int idOrden) {
-    ordenServicio* o = buscarOrdenPorID(s, idOrden);
-    if (o == nullptr || (strcmp(o->estado, "ABIERTA") != 0 && strcmp(o->estado, "CERRADA") != 0)) {
+bool anularOrdenServicio(int idOrden) {
+    ordenServicio o;
+    if (!buscarOrdenPorID(idOrden, o)) return false;
+    
+    // Solo ABIERTAS o CERRADAS pueden anularse
+    if (strcmp(o.estado, "ABIERTA") != 0 && strcmp(o.estado, "CERRADA") != 0) {
         return false;
     }
 
-    for (int i = 0; i < o->numDetalles; i++) {
-        Repuesto* r = buscarRepuestoPorID(s, o->detalles[i].idRepuesto);
-        if (r != nullptr) {
-            r->stock += o->detalles[i].cantidad;
+    // Devolver al inventario las unidades de todas sus lineas
+    fstream archRep("datos/repuestos.bin", ios::in | ios::out | ios::binary);
+    if (archRep.is_open()) {
+        for (int i = 0; i < o.numDetalles; i++) {
+            Repuesto r;
+            long posRep = calcularPosicion(o.detalles[i].idRepuesto, sizeof(Repuesto));
+            
+            // Leemos el repuesto específico
+            archRep.seekg(posRep, ios::beg);
+            archRep.read((char*)&r, sizeof(Repuesto));
+            
+            // Le devolvemos su stock
+            r.stock += o.detalles[i].cantidad;
+            r.fechaUltimaModificacion = time(nullptr);
+            
+            // Sobrescribimos en la misma posición
+            archRep.seekp(posRep, ios::beg);
+            archRep.write((char*)&r, sizeof(Repuesto));
         }
+        archRep.close();
     }
 
-    strcpy(o->estado, "ANULADA");
+    // Cambiamos el estado de la orden
+    strcpy(o.estado, "ANULADA");
+    o.fechaUltimaModificacion = time(nullptr);
+
+    // Guardamos la orden anulada
+    fstream archOrd("datos/ordenes.bin", ios::in | ios::out | ios::binary);
+    long posOrd = calcularPosicion(idOrden, sizeof(ordenServicio));
+    archOrd.seekp(posOrd, ios::beg);
+    archOrd.write((char*)&o, sizeof(ordenServicio));
+    archOrd.close();
+
     return true;
 }
 
@@ -557,28 +704,41 @@ float calcularTotalOrden(const ordenServicio &o) {
     return o.manoObra + totalRepuestos;
 }
 
-ordenServicio* buscarOrdenPorID(sysTaller &s, int id) {
-    for (int i = 0; i < s.numOrdenes; i++) {
-        if (s.ordenes[i].id == id) return &s.ordenes[i];
+bool buscarOrdenPorID(int id, ordenServicio &resultado) {
+    fstream archivo("ordenes.bin", ios::in | ios::binary);
+    if (!archivo.is_open()) return false;
+    ArchivoHeader h;
+    archivo.read((char*)&h, sizeof(ArchivoHeader));
+    
+    if (id < 1 || id >= h.proximoID) {
+        archivo.close();
+        return false;
     }
-    return nullptr;
+    
+    long posicion = calcularPosicion(id, sizeof(ordenServicio));
+    archivo.seekg(posicion, ios::beg);
+    archivo.read((char*)&resultado, sizeof(ordenServicio));
+    archivo.close();
+    return !resultado.eliminado;
 }
 
-ordenServicio** listarOrdenesPorEstado(sysTaller &s, const char* estado, int &cantidad) {
+bool listarOrdenesPorEstado(const char* estado, ordenServicio resultados[], int &cantidad) {
     cantidad = 0;
-    for (int i = 0; i < s.numOrdenes; i++) {
-        if (strcmp(s.ordenes[i].estado, estado) == 0) {
+    fstream archivo("datos/ordenes.bin", ios::in | ios::binary);
+    if (!archivo.is_open()) return false;
+
+    ArchivoHeader h;
+    archivo.read((char*)&h, sizeof(ArchivoHeader));
+
+    ordenServicio temp;
+    for (int i = 0; i < h.cantidadRegistros; i++) {
+        archivo.read((char*)&temp, sizeof(ordenServicio));
+        // Si no esta eliminada, coincide el estado y no superamos el límite del arreglo
+        if (!temp.eliminado && strcmp(temp.estado, estado) == 0 && cantidad < 100) {
+            resultados[cantidad] = temp;
             cantidad++;
         }
     }
-    if (cantidad == 0) return nullptr;
-
-    ordenServicio** resultado = new ordenServicio*[cantidad];
-    int idx = 0;
-    for (int i = 0; i < s.numOrdenes; i++) {
-        if (strcmp(s.ordenes[i].estado, estado) == 0) {
-            resultado[idx++] = &s.ordenes[i];
-        }
-    }
-    return resultado;
+    archivo.close();
+    return cantidad > 0;
 }

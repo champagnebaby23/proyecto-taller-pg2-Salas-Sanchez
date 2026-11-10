@@ -5,6 +5,9 @@
 
 #include <string>
 
+bool cargarTaller(Taller &t);
+void guardarTaller(Taller t);
+
 void inicializarArchivoBase(const char* ruta);
 long calcularPosicion(int id, size_t sizeEstructura);
 
