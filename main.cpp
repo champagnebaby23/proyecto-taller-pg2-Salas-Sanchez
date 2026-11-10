@@ -6,6 +6,7 @@
 #include <string>
 #include "struct_taller.h"
 #include "logica.h"
+#include <sys/stat.h> // Para crear el directorio "datos/"
 using namespace std;
 
 // ====================
@@ -179,6 +180,7 @@ float leerFlotanteSeguro(const string& mensaje, float min, float max) {
 // ====================
 // MODULO DE VEHICULOS
 // ====================
+
 void mostrarVehiculo(Vehiculo v) {
     // Los ID nunca se muestran solos, siempre van acompa;ados de datos descriptivos de la entidad
     cout << "----------------------------------------" << endl;
@@ -188,25 +190,18 @@ void mostrarVehiculo(Vehiculo v) {
     cout << "Kilometraje : " << v.km << " km" << endl;
     cout << "Propietario : " << v.nombrePropietario << " (Cedula: " << v.cedulaPropietario << ")" << endl;
     cout << "Telefono    : " << v.telefonoPropietario << endl;
-    cout << "Registro    : " << v.fechaRegistro << endl;
     cout << "----------------------------------------" << endl;
 
 }
 
-void menuRegistrarVehiculo(sysTaller &s) {
+void menuRegistrarVehiculo() {
     Vehiculo v;
     cout << "\n--- REGISTRAR NUEVO VEHICULO ---" << endl;
     leerTextoNoVacio("Placa (alfanumerica): ", v.placa, 10);
-
-    // Se usa cin >> ws para limpiar el bufer antes de usar un cin.getline y evitar que se salte la lectura
     leerTextoNoVacio("Marca: ", v.marca, 50);
-    
     leerTextoNoVacio("Modelo: ", v.modelo, 50);
-    
     v.anio = leerEnteroSeguro("Ano de Fabricacion (1950-2027): ", 1950, 2027);
-    
     v.km = leerEnteroSeguro("Kilometraje actual (>= 0): ", 0, 2000000);
-    
     leerTextoSoloLetras("Nombre completo del propietario: ", v.nombrePropietario, 100);
     leerTextoNoVacio("Cedula o RIF del propietario: ", v.cedulaPropietario, 20);
     leerTelefonoSeguro("Telefono del propietario: ", v.telefonoPropietario, 20);
@@ -216,129 +211,120 @@ void menuRegistrarVehiculo(sysTaller &s) {
     cin >> confirmacion;
 
     if (confirmacion == 'S' || confirmacion == 's') {
-        // Se envia la estructura a logica.cpp
-        Vehiculo* nuevo = agregarVehiculo(s, v);
-
-        // La presentacion lee el resultado (puntero o nullptr) para imprimir el mensaje correspondiente indicando que pudo fallar
-        if (nuevo != nullptr) {
-            cout << "¡Vehiculo registrado exitosamente con ID #" << nuevo->id << "!" << endl;
+        if (agregarVehiculo(v)) { 
+            // la función agregarVehiculo modifica v y le asigna su nuevo ID.
+            cout << "¡Vehiculo registrado exitosamente con ID #" << v.id << "!" << endl;
         } else {
-            cout << "ERROR: La placa '" << v.placa << "' ya esta registrada o los datos son invalidos (ano/km)." << endl;
+            cout << "ERROR: La placa '" << v.placa << "' ya esta registrada o los datos son invalidos." << endl;
         }
     } else {
         cout << "Registro cancelado." << endl;
     }
 }
 
-void menuBuscarVehiculo(sysTaller &s) {
+void menuBuscarVehiculo() {
     int opcionBusqueda;
     cout << "\n--- BUSCAR VEHICULO ---" << endl;
     cout << "1. Buscar por ID" << endl;
     cout << "2. Buscar por Placa exacta" << endl;
-    cout << "3. Buscar por Nombre de Propietario (parcial)" << endl;
-    
-    opcionBusqueda = leerEnteroSeguro("Seleccione una opcion: ", 1, 3);
+    opcionBusqueda = leerEnteroSeguro("Seleccione una opcion: ", 1, 2);
+
+    Vehiculo vEncontrado; // Variable para recibir los bytes del disco
 
     if (opcionBusqueda == 1) {
-        int id;
-        id = leerEnteroSeguro("Ingrese el ID: ", 1, 999999);
-        
-        Vehiculo* v = buscarVehiculoPorID(s, id);
-        if (v != nullptr) mostrarVehiculo(*v);
-        else cout << "ERROR: Vehiculo con ID #" << id << " no encontrado." << endl;
+        int id = leerEnteroSeguro("Ingrese el ID: ", 1, 999999);
+        if (buscarVehiculoPorID(id, vEncontrado)) {
+            mostrarVehiculo(vEncontrado);
+        } else {
+            cout << "ERROR: Vehiculo con ID #" << id << " no encontrado o eliminado." << endl;
+        }
     } 
     else if (opcionBusqueda == 2) {
         char placa[10];
         leerTextoNoVacio("Ingrese la placa exacta: ", placa, 10);
-        
-        Vehiculo* v = buscarVehiculoPorPlaca(s, placa);
-        if (v != nullptr) mostrarVehiculo(*v);
-        else cout << "ERROR: Vehiculo con placa '" << placa << "' no encontrado." << endl;
-    } 
-    else if (opcionBusqueda == 3) {
-        char sub[100];
-        leerTextoSoloLetras("Ingrese el nombre o parte del propietario: ", sub, 100);
-        
-        int cantidad = 0;
-
-        Vehiculo** lista = buscarVehiculosPorPropietario(s, sub, cantidad);
-        if (cantidad == 0 || lista == nullptr) {
-            cout << "No se encontraron vehiculos para el criterio \"" << sub << "\"." << endl;
+        if (buscarVehiculoPorPlaca(placa, vEncontrado)) {
+            mostrarVehiculo(vEncontrado);
         } else {
-            cout << "\nSe encontraron " << cantidad << " vehiculo(s):" << endl;
-            for (int i = 0; i < cantidad; i++) {
-                mostrarVehiculo(*lista[i]);
-            }
-            delete[] lista;
+            cout << "ERROR: Vehiculo con placa '" << placa << "' no encontrado." << endl;
         }
-    }
+    } 
 }
 
-void menuListarVehiculos(sysTaller &s) {
+void menuListarVehiculos() {
+    Vehiculo lista[100]; // Arreglo estático temporal para recibir los datos
     int cantidad = 0;
-    Vehiculo** lista = listarVehiculos(s, cantidad);
-    cout << "\n--- LISTADO GENERAL DE VEHICULOS ---" << endl;
-    if (cantidad == 0 || lista == nullptr) {
+    
+    if (listarVehiculos(lista, cantidad)) {
+        cout << "\n--- LISTADO GENERAL DE VEHICULOS ---" << endl;
+        for (int i = 0; i < cantidad; i++) {
+            mostrarVehiculo(lista[i]);
+        }
+        cout << "Total de vehiculos activos: " << cantidad << endl;
+    } else {
         cout << "No hay vehiculos registrados." << endl;
-        return;
     }
-    for (int i = 0; i < cantidad; i++) {
-        mostrarVehiculo(*lista[i]);
-    }
-    cout << "Total de vehiculos: " << cantidad << endl;
-    delete[] lista;
+    // NOTA: Como usamos memoria estática (lista[100]), ya NO es necesario hacer delete[]
 }
 
-void menuActualizarVehiculo(sysTaller &s) {
+void menuActualizarVehiculo() {
     cout << "\n--- ACTUALIZAR DATOS DE VEHICULO ---" << endl;
     
-    // Usamos la funcion de validacion para evitar errores al pedir el ID
     int id = leerEnteroSeguro("Ingrese el ID del vehiculo a actualizar: ", 1, 999999);
     
-    Vehiculo* actual = buscarVehiculoPorID(s, id);
+    Vehiculo actual; // Variable para recibir los datos del disco
     
-    if (actual == nullptr) {
-        cout << "ERROR: No se encontro ningun vehiculo registrado con el ID #" << id << "." << endl;
+    // Verificamos si existe buscando en el archivo binario
+    if (!buscarVehiculoPorID(id, actual)) {
+        cout << "ERROR: No se encontro ningun vehiculo activo con el ID #" << id << "." << endl;
         return;
     }
 
-    cout << "\nVehiculo encontrado. Ingrese los nuevos datos (Placa, KM y Registro no se pueden modificar)." << endl;
+    cout << "\nVehiculo encontrado. Ingrese los nuevos datos." << endl;
+    cout << "(Nota: Placa, Kilometraje y ID no se pueden modificar por reglas de negocio)." << endl;
     
-    Vehiculo nuevosDatos;
+    Vehiculo datosNuevos;
     
-    leerTextoNoVacio("Nueva Marca: ", nuevosDatos.marca, 50);
-    leerTextoNoVacio("Nuevo Modelo: ", nuevosDatos.modelo, 50);
-    
-    nuevosDatos.anio = leerEnteroSeguro("Nuevo Ano de Fabricacion (1950-2027): ", 1950, 2027);
-    
-    leerTextoSoloLetras("Nuevo Nombre completo del propietario: ", nuevosDatos.nombrePropietario, 100);
-    leerTextoNoVacio("Nueva Cedula o RIF del propietario: ", nuevosDatos.cedulaPropietario, 20);
-    leerTelefonoSeguro("Nuevo Telefono del propietario: ", nuevosDatos.telefonoPropietario, 20);
+    // Solicitamos solo los datos permitidos de actualizar[cite: 7]
+    leerTextoNoVacio("Nueva Marca: ", datosNuevos.marca, 50);
+    leerTextoNoVacio("Nuevo Modelo: ", datosNuevos.modelo, 50);
+    datosNuevos.anio = leerEnteroSeguro("Nuevo Ano de Fabricacion (1950-2027): ", 1950, 2027);
+    leerTextoSoloLetras("Nuevo Nombre completo del propietario: ", datosNuevos.nombrePropietario, 100);
+    leerTextoNoVacio("Nueva Cedula o RIF del propietario: ", datosNuevos.cedulaPropietario, 20);
+    leerTelefonoSeguro("Nuevo Telefono del propietario: ", datosNuevos.telefonoPropietario, 20);
 
     char conf;
-    cout << "¿Esta seguro de actualizar los datos de este vehiculo? (S/N): ";
-    cin >> conf;
+    do {
+        cout << "¿Esta seguro de actualizar los datos de este vehiculo? (S/N): ";
+        cin >> conf;
+        if (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n') {
+            cout << "[!] Entrada invalida. Ingrese S para Si o N para No." << endl;
+            cin.clear();
+            cin.ignore(10000, '\n');
+        }
+    } while (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n');
+    cin.ignore(10000, '\n');
     
     if (conf == 'S' || conf == 's') {
-        if (actualizarVehiculo(s, id, nuevosDatos)) {
-            cout << "¡Vehiculo actualizado exitosamente!" << endl;
+        // Llamamos a la lógica enviando el ID y la estructura con los nuevos datos
+        if (actualizarVehiculo(id, datosNuevos)) {
+            cout << "¡Vehiculo actualizado exitosamente en la base de datos!" << endl;
         } else {
-            cout << "ERROR: Ocurrio un problema al actualizar (datos invalidos)." << endl;
+            cout << "ERROR: Ocurrio un problema al guardar la actualizacion." << endl;
         }
     } else {
-        cout << "Operacion cancelada. Los datos originales se mantienen." << endl;
+        cout << "Operacion cancelada. Los datos originales se mantienen intactos." << endl;
     }
 }
 
 
-void menuEliminarVehiculo(sysTaller &s) {
-    int id;
+void menuEliminarVehiculo() {
     cout << "\n--- ELIMINAR VEHICULO ---" << endl;
-    id = leerEnteroSeguro("Ingrese la ID: ", 1, 999999);
+    
+    int id = leerEnteroSeguro("Ingrese la ID del vehiculo a eliminar: ", 1, 999999);
 
     char confirmacion;
     do {
-        cout << "¿Esta seguro de eliminar fisicamente este vehiculo? (S/N): ";
+        cout << "¿Esta seguro de dar de baja este vehiculo? (S/N): ";
         cin >> confirmacion;
         
         if (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n') {
@@ -347,14 +333,13 @@ void menuEliminarVehiculo(sysTaller &s) {
             cin.ignore(10000, '\n');
         }
     } while (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n');
-
     cin.ignore(10000, '\n');
 
     if (confirmacion == 'S' || confirmacion == 's') {
-        if (eliminarVehiculo(s, id)) {
-            cout << "¡Vehiculo eliminado exitosamente!" << endl;
+        if (eliminarVehiculo(id)) {
+            cout << "¡Vehiculo eliminado (dado de baja) exitosamente!" << endl;
         } else {
-            cout << "ERROR: No se pudo eliminar. El vehiculo no existe o tiene ordenes de servicio asociadas." << endl;
+            cout << "ERROR: No se pudo eliminar. El vehiculo no existe o tiene ordenes asociadas." << endl;
         }
     } else {
         cout << "Operacion cancelada." << endl;

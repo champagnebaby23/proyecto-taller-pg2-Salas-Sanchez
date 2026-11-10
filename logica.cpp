@@ -3,6 +3,7 @@
 #include <cctype>
 #include <string>
 #include <fstream>
+#include <ctime>
 using namespace std;
 
 // FUNCIONES AUXILIARES
@@ -24,199 +25,180 @@ bool contieneSubcadena(const char* texto, const char* subcadena) {
     return strstr(t, sub) != nullptr;
 }
 
-void inicializarSistema(sysTaller &s, const char* nombre, const char* rif, const char* dir, const char* tel) {
+// ########################
+// MOTOR BASE: PERSISTENCIA
+// ########################
 
-    strcpy(s.taller.nombre, nombre);
-    strcpy(s.taller.rif, rif);
-    strcpy(s.taller.direccion, dir);
-    strcpy(s.taller.telefono, tel);
-
-// Todos los arreglos arrancan con capacidad de 4 espacios en RAM
-// Se usa new para alojar los datos en memoria dinamica
-    s.capacidadVehiculos = 4;
-    s.numVehiculos = 0;
-    s.vehiculos = new Vehiculo[s.capacidadVehiculos];
-
-    s.capacidadMecanicos = 4;
-    s.numMecanicos = 0;
-    s.mecanicos = new Mecanico[s.capacidadMecanicos];
-
-    s.capacidadRepuestos = 4;
-    s.numRepuestos = 0;
-    s.repuestos = new Repuesto[s.capacidadRepuestos];
-
-    s.capacidadOrdenes = 4;
-    s.numOrdenes = 0;
-    s.ordenes = new ordenServicio[s.capacidadOrdenes];
-
-    // ID autoincremental para garantizar integridad referencial 
-    s.siguienteIdVehiculo = 1;
-    s.siguienteIdMecanico = 1;
-    s.siguienteIdRepuesto = 1;
-    s.siguienteIdOrden = 1;
+void inicializarArchivoBase(const char* ruta) {
+    fstream archivo(ruta, ios::in | ios::binary);
+    if (!archivo.is_open()) {
+        archivo.clear();
+        archivo.open(ruta, ios::out | ios::binary);
+        ArchivoHeader h = {0, 1, 0, 1}; // cant:0, proxID:1, activos:0, ver:1
+        archivo.write((char*)&h, sizeof(ArchivoHeader));
+        archivo.close();
+    } else {
+        archivo.close();
+    }
 }
 
-
-// Prevencion de fugas de memoria
-void liberarSistema(sysTaller &s) {
-
-// Se recorren todas las ordenes para destruir sus arreglos internos
-    for (int i=0; i < s.numOrdenes; i++) {
-        delete[] s.ordenes[i].detalles;
-    }
-
-    // Despues, se procede a eliminar los arreglos maestros
-    delete[] s.ordenes;
-    delete[] s.vehiculos;
-    delete[] s.mecanicos;
-    delete[] s.repuestos;
-    
-    // Se anulan los punteros para evitar memory leaks
-    s.vehiculos = nullptr;
-    s.mecanicos = nullptr;
-    s.repuestos = nullptr;
-    s.ordenes = nullptr;
+long calcularPosicion(int id, size_t sizeEstructura) {
+    return sizeof(ArchivoHeader) + (id - 1) * sizeEstructura;
 }
 
 // =====================
 // MODULO DE VEHICULOS
 // =====================
 
-Vehiculo* agregarVehiculo(sysTaller &s, Vehiculo datos) {
-
-    // Validaciones estrictas de reglas del negocio
-    if (buscarVehiculoPorPlaca(s, datos.placa) != nullptr) { 
-        return nullptr;
+bool agregarVehiculo(Vehiculo &datos) {
+    Vehiculo temp;
+    if (buscarVehiculoPorPlaca(datos.placa, temp)) {
+        return false; // Placa ya registrada
     }
 
-    if (datos.anio < 1950 || datos.anio > 2027 || datos.km < 0) {
-        return nullptr;
-    }
-    // Redireccionamiento automatico
-    if (s.numVehiculos >= s.capacidadVehiculos) { // Ocurre cuando se agota la capacidad inicial (num == capacidad)
-        int nuevaCapacidad = s.capacidadVehiculos * 2;
-        Vehiculo* nuevoArreglo = new Vehiculo[nuevaCapacidad];
+    fstream archivo("vehiculos.bin", ios::in | ios::out | ios::binary);
+    if (!archivo.is_open()) return false; // Igual a un cout advirtiendo que no se pudo abrir el archivo
 
-        // Se copia el arreglo viejo al nuevo
-        for (int i = 0; i < s.numVehiculos; i++) { 
-            nuevoArreglo[i] = s.vehiculos[i];
-    }
+    // Leer Header
+    ArchivoHeader h;
+    archivo.seekg(0, ios::beg);
+    archivo.read((char*)&h, sizeof(ArchivoHeader));
 
-    // Se elimina el arreglo viejo y el nuevo asume el nuevo contenedor
-    delete[] s.vehiculos;
-    s.vehiculos = nuevoArreglo;
-    s.capacidadVehiculos = nuevaCapacidad;
-    }
+    // Preparar metadatos
+    datos.id = h.proximoID;
+    datos.eliminado = false;
+    datos.fechaCreacion = time(nullptr);
+    datos.fechaUltimaModificacion = datos.fechaCreacion;
 
-datos.id = s.siguienteIdVehiculo++;
-s.vehiculos[s.numVehiculos] = datos;
+    // Escribir al final
+    archivo.seekp(0, ios::end);
+    archivo.write((char*)&datos, sizeof(Vehiculo));
 
-return &s.vehiculos[s.numVehiculos++];
-}
-
-Vehiculo* buscarVehiculoPorID(sysTaller &s, int id) {
-    for (int i=0; i < s.numVehiculos; i++) {
-        if (s.vehiculos[i].id == id) {
-            return &s.vehiculos[i]; // Retorna la direccion de memoria exacta del vehiculo en el arreglo
-            }
-        }
-    return nullptr;
-    }
-
-Vehiculo* buscarVehiculoPorPlaca(sysTaller &s, const char* placa) {
-    for (int i = 0; i < s.numVehiculos; i++) {
-        if (strcmp(s.vehiculos[i].placa, placa) == 0) {
-            return &s.vehiculos[i];
-        }
-    }
-    return nullptr;
-}
-
-Vehiculo** buscarVehiculosPorPropietario(sysTaller &s, const char* subcadena, int &cantidad) {
-    cantidad = 0;
-    // Se cuentan cuantos coinciden para saber de que tama;o crear el arreglo 
-    for (int i = 0; i < s.numVehiculos; i++) {
-        if (contieneSubcadena(s.vehiculos[i].nombrePropietario, subcadena)) {
-            cantidad++;
-        }
-    }
-    if (cantidad == 0) return nullptr;
-
-    // ARREGLO DE PUNTEROS
-    // No se duplican los vehiculos pesados, solo se crea un arreglo temporal de flechas
-    Vehiculo** resultado = new Vehiculo*[cantidad];
-    int idx = 0;
-    for (int i = 0; i < s.numVehiculos; i++) {
-        if (contieneSubcadena(s.vehiculos[i].nombrePropietario, subcadena)) {
-            resultado[idx++] = &s.vehiculos[i];
-        }
-    }
-    return resultado;
-}
-
-Vehiculo** listarVehiculos(sysTaller &s, int &cantidad) {
-    cantidad = s.numVehiculos;
-    if (cantidad == 0) return nullptr;
-
-    Vehiculo** resultado = new Vehiculo*[cantidad];
-    for (int i = 0; i < cantidad; i++) {
-        resultado[i] = &s.vehiculos[i];
-    }
-    return resultado;
-}
-
-bool actualizarVehiculo(sysTaller &s, int id, Vehiculo datos) {
-    // Buscamos si el vehículo existe
-    Vehiculo* v = buscarVehiculoPorID(s, id);
+    // Actualizar Header
+    h.cantidadRegistros++;
+    h.registrosActivos++;
+    h.proximoID++;
     
-    // Retorna false si el ID no existe o algún dato numérico es inválido
-    if (v == nullptr) return false;
-    if (datos.anio < 1950 || datos.anio > 2027) return false;
-    if (strlen(datos.marca) == 0 || strlen(datos.modelo) == 0 || strlen(datos.nombrePropietario) == 0) return false;
-
-    // Actualizamos solo los campos permitidos según el enunciado
-    strcpy(v->marca, datos.marca);
-    strcpy(v->modelo, datos.modelo);
-    v->anio = datos.anio;
+    archivo.seekp(0, ios::beg);
+    archivo.write((char*)&h, sizeof(ArchivoHeader));
+    archivo.close();
     
-    strcpy(v->nombrePropietario, datos.nombrePropietario);
-    strcpy(v->cedulaPropietario, datos.cedulaPropietario);
-    strcpy(v->telefonoPropietario, datos.telefonoPropietario);
-
-    // El ID, la placa, el kilometraje y la fechaRegistro quedan intactos
     return true;
 }
 
-// ====== FUNCION ACTUALIZAR VEHICULOS ====== 
+bool buscarVehiculoPorID(int id, Vehiculo &resultado) {
+    fstream archivo("vehiculos.bin", ios::in | ios::binary);
+    if (!archivo.is_open()) return false;
 
+    ArchivoHeader h;
+    archivo.read((char*)&h, sizeof(ArchivoHeader));
+    if (id < 1 || id >= h.proximoID) {
+        archivo.close();
+        return false;
+    }
 
-bool eliminarVehiculo(sysTaller &s, int id) {
-    for (int i = 0; i < s.numOrdenes; i++) {
-        if (s.ordenes[i].idVehiculo == id) {
-            return false; // Bloqueado si existen ordenes con ese vehiculo
+    // ACCESO ALEATORIO: Saltamos a la posición exacta (seekg)
+    long posicion = calcularPosicion(id, sizeof(Vehiculo));
+    archivo.seekg(posicion, ios::beg);
+    archivo.read((char*)&resultado, sizeof(Vehiculo));
+    archivo.close();
+
+    return !resultado.eliminado;
+}
+
+bool buscarVehiculoPorPlaca(const char* placa, Vehiculo &resultado) {
+    fstream archivo("vehiculos.bin", ios::in | ios::binary);
+    if (!archivo.is_open()) return false;
+
+    ArchivoHeader h;
+    archivo.read((char*)&h, sizeof(ArchivoHeader));
+
+    // Búsqueda secuencial solo para la placa
+    for (int i = 0; i < h.cantidadRegistros; i++) {
+        archivo.read((char*)&resultado, sizeof(Vehiculo));
+        if (!resultado.eliminado && strcmp(resultado.placa, placa) == 0) {
+            archivo.close();
+            return true; 
         }
     }
+    archivo.close();
+    return false;
+}
 
-    int index = -1;
-    for (int i = 0; i < s.numVehiculos; i++) {
-        if (s.vehiculos[i].id == id) {
-            index = i;
-            break;
+bool listarVehiculos(Vehiculo resultados[], int &cantidad) {
+    cantidad = 0;
+    fstream archivo("datos/vehiculos.bin", ios::in | ios::binary);
+    if (!archivo.is_open()) return false;
+
+    ArchivoHeader h;
+    archivo.read((char*)&h, sizeof(ArchivoHeader));
+
+    Vehiculo temp;
+    for (int i = 0; i < h.cantidadRegistros; i++) {
+        archivo.read((char*)&temp, sizeof(Vehiculo));
+        if (!temp.eliminado && cantidad < 100) { // Limitamos para no desbordar RAM
+            resultados[cantidad] = temp;
+            cantidad++;
         }
     }
-    if (index == -1) return false;
+    archivo.close();
+    return cantidad > 0;
+}
 
-    // Se desplazan elementos hacia atras
-    for (int i = index; i < s.numVehiculos - 1; i++) {
-        s.vehiculos[i] = s.vehiculos[i + 1];
-    }
-    s.numVehiculos--;
+bool actualizarVehiculo(int id, Vehiculo datosNuevos) {
+    Vehiculo vActual;
+    if (!buscarVehiculoPorID(id, vActual)) return false; 
+
+    // Copiamos datos permitidos
+    strcpy(vActual.marca, datosNuevos.marca);
+    strcpy(vActual.modelo, datosNuevos.modelo);
+    vActual.anio = datosNuevos.anio;
+    strcpy(vActual.nombrePropietario, datosNuevos.nombrePropietario);
+    strcpy(vActual.cedulaPropietario, datosNuevos.cedulaPropietario);
+    strcpy(vActual.telefonoPropietario, datosNuevos.telefonoPropietario);
+    
+    vActual.fechaUltimaModificacion = time(nullptr);
+
+    // Escribimos en su posición original (seekp)
+    fstream archivo("datos/vehiculos.bin", ios::in | ios::out | ios::binary);
+    long posicion = calcularPosicion(id, sizeof(Vehiculo));
+    archivo.seekp(posicion, ios::beg);
+    archivo.write((char*)&vActual, sizeof(Vehiculo));
+    archivo.close();
+
+    return true;
+}
+
+bool eliminarVehiculo(int id) {
+    Vehiculo v;
+    if (!buscarVehiculoPorID(id, v)) return false;
+
+    // Faltaria verificar si tiene ordenes activas buscando en ordenes.bin
+
+    v.eliminado = true; // Borrado lógico
+    v.fechaUltimaModificacion = time(nullptr);
+
+    fstream archivo("datos/vehiculos.bin", ios::in | ios::out | ios::binary);
+    long posicion = calcularPosicion(id, sizeof(Vehiculo));
+    archivo.seekp(posicion, ios::beg);
+    archivo.write((char*)&v, sizeof(Vehiculo));
+
+    // Descontar activos del header
+    ArchivoHeader h;
+    archivo.seekg(0, ios::beg);
+    archivo.read((char*)&h, sizeof(ArchivoHeader));
+    h.registrosActivos--;
+    archivo.seekp(0, ios::beg);
+    archivo.write((char*)&h, sizeof(ArchivoHeader));
+
+    archivo.close();
     return true;
 }
 
 // =================
 // MODULO MECANICOS
 // =================
+
 Mecanico* registrarMecanico(sysTaller &s, Mecanico datos) {
     // 1. Validaciones de negocio
     if (buscarMecanicoPorCedula(s, datos.cedula) != nullptr) {

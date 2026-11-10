@@ -5,8 +5,6 @@
 
 #include <string>
 
-void inicializarSistema(sysTaller &s, const char* nombre, const char *rif, const char* dir, const char* tel);
-
 void inicializarArchivoBase(const char* ruta);
 long calcularPosicion(int id, size_t sizeEstructura);
 
