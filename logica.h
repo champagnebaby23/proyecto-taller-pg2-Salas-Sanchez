@@ -2,45 +2,74 @@
 #define LOGICA_H
 
 #include "struct_taller.h"
-
 #include <string>
 
+using namespace std;
+
+// ====================================
+// CONFIGURACIÓN DEL SISTEMA Y TALLER
+// ====================================
+void inicializarSistemaArchivos();
 bool cargarTaller(Taller &t);
-void guardarTaller(Taller t);
+void guardarTaller(const Taller &t);
 
-void inicializarArchivoBase(const char* ruta);
-long calcularPosicion(int id, size_t sizeEstructura);
-
-bool agregarVehiculo(Vehiculo &datos);
-bool buscarVehiculoPorID(int id, Vehiculo &resultado);
+// ==================================
+// MÓDULO DE VEHÍCULOS
+// ==================================
+bool agregarVehiculo(Vehiculo &datos, string &motivoFallo);
+bool buscarVehiculoPorID(int id, Vehiculo &resultado, bool &fueEliminado, long &posicionBytes);
 bool buscarVehiculoPorPlaca(const char* placa, Vehiculo &resultado);
-bool buscarVehiculosPorPropietario(const char* subcadena, Vehiculo resultados[], int &cantidad);
-bool listarVehiculos(Vehiculo resultados[], int &cantidad);
-bool actualizarVehiculo(int id, Vehiculo datos);
-bool eliminarVehiculo(int id);
+bool buscarVehiculosPorPropietario(const char* subcadena, Vehiculo resultados[], int &cantidad, bool &hayMas);
+bool listarVehiculos(Vehiculo resultados[], int &cantidad, bool &hayMas);
+bool actualizarVehiculo(int id, const Vehiculo &datosNuevos, string &motivoFallo);
+bool eliminarVehiculo(int id, string &motivoFallo);
 
-bool registrarMecanico(Mecanico &datos);
-bool buscarMecanicoPorID(int id, Mecanico &resultado);
+// =====================
+// MÓDULO DE MECÁNICOS
+// =====================
+bool registrarMecanico(Mecanico &datos, string &motivoFallo);
+bool buscarMecanicoPorID(int id, Mecanico &resultado, bool &fueEliminado, long *posicionBytes = nullptr);
+bool obtenerMecanicoHistorico(int id, Mecanico &resultado);
 bool buscarMecanicoPorCedula(const char* cedula, Mecanico &resultado);
-bool listarMecanicos(Mecanico resultados[], int &cantidad);
+bool listarMecanicos(Mecanico resultados[], int &cantidad, bool &hayMas);
 bool especialidadValida(const char* esp);
-bool eliminarMecanico(int id);
+int contarOrdenesAbiertasMecanico(int idMecanico);
+bool eliminarMecanico(int id, string &motivoFallo);
 
-bool registrarRepuesto(Repuesto &datos);
-bool buscarRepuestoPorID(int id, Repuesto &resultado);
+// =====================
+// MÓDULO DE REPUESTOS 
+// =====================
+bool registrarRepuesto(Repuesto &datos, string &motivoFallo);
+bool buscarRepuestoPorID(int id, Repuesto &resultado, bool &fueEliminado, long *posicionBytes = nullptr);
 bool buscarRepuestoPorCodigo(const char* codigo, Repuesto &resultado);
-bool registrarEntradaMercancia(int idRepuesto, int cantidadAdicional);
-bool listarRepuestos(Repuesto resultados[], int &cantidad);
-bool cambiarPrecioRepuesto(int idRepuesto, float nuevoPrecio);
-bool eliminarRepuesto(int id);
+bool buscarRepuestoPorNombreParcial(const char* subcadena, Repuesto resultados[], int &cantidad, bool &hayMas);
+bool registrarEntradaMercancia(int idRepuesto, int cantidadAdicional, string &motivoFallo);
+bool listarRepuestos(Repuesto resultados[], int &cantidad, bool &hayMas);
+bool cambiarPrecioRepuesto(int idRepuesto, float nuevoPrecio, string &motivoFallo);
+bool eliminarRepuesto(int id, string &motivoFallo);
 
-bool abrirOrdenServicio(int idVehiculo, int idMecanico, const char* fechaApertura, const char* descripcionFalla, int kmIngreso, ordenServicio &resultado);
-bool agregarRepuestoAOrden(int idOrden, int idRepuesto, int cantidad);
-bool quitarRepuestoDeOrden(int idOrden, int idRepuesto);
-bool cerrarOrdenServicio(int idOrden, const char* fechaCierre, float manoObra);
-bool anularOrdenServicio(int idOrden);
-float calcularTotalOrden(const ordenServicio &o);
-bool buscarOrdenPorID(int id, ordenServicio &resultado);
-bool listarOrdenesPorEstado(const char* estado, ordenServicio resultados[], int &cantidad);
+// ===============================
+// MÓDULO DE ÓRDENES DE SERVICIO
+// ===============================
+bool abrirOrdenServicio(int idVehiculo, int idMecanico, const char* fechaApertura,
+                       const char* descripcionFalla, int kilometrajeIngreso,
+                       OrdenServicio &resultado, string &motivoFallo);
+bool agregarRepuestoAOrden(int idOrden, int idRepuesto, int cantidad, string &motivoFallo);
+bool quitarRepuestoDeOrden(int idOrden, int idRepuesto, string &motivoFallo);
+bool cerrarOrdenServicio(int idOrden, const char* fechaCierre, float manoObra, string &motivoFallo);
+bool anularOrdenServicio(int idOrden, string &motivoFallo);
+float calcularTotalOrden(const OrdenServicio &o);
+bool buscarOrdenPorID(int id, OrdenServicio &resultado, long *posicionBytes = nullptr);
+bool listarOrdenesPorEstado(const char* estado, OrdenServicio resultados[], int &cantidad, bool &hayMas);
 
-#endif
+// ====================================
+// MÓDULO DE REPORTES Y MANTENIMIENTO
+// ====================================
+bool generarReporteHistorialVehiculo(const char* placa, Vehiculo &vEncontrado,
+                                    OrdenServicio ordenesVehiculo[], int &cantOrdenes, float &totalFacturado);
+bool generarReporteTopRepuestos(TopRepuesto top10[], int &cantEncontrados);
+bool generarReporteFacturacionMecanicos(FilaFacturacionMecanico filas[], int &cantFilas, bool &hayMas);
+bool crearBackup(string &rutaGenerada);
+void verificarIntegridadSistema(string errores[], int &cantErrores, int contadores[]);
+
+#endif // LOGICA_H

@@ -1,744 +1,1191 @@
 #include "logica.h"
+#include "persistencia.h"
 #include <cstring>
 #include <cctype>
+#include <cstdio>
 #include <string>
-#include <fstream>
 #include <ctime>
+#include <fstream>
+
+#ifdef _WIN32
+    #include <direct.h>
+#else
+    #include <sys/stat.h>
+#endif
+
 using namespace std;
 
-// FUNCIONES AUXILIARES
-// Se utilizan arreglos char en C para garantizar memoria fija
-void aMinusculas(const char* origen, char* destino) {
-    int i = 0;
-    while (origen[i] != '\0') {
-        destino[i] = tolower(origen[i]);
+// ==================================================
+// FUNCIONES AUXILIARES DE CADENAS (NO PERSISTENTES)
+// ==================================================
+
+void aMinusculas(const char* origen, char* destino, size_t tamDestino) {
+    size_t i = 0;
+    while (origen[i] != '\0' && i + 1 < tamDestino) {
+        destino[i] = static_cast<char>(tolower(static_cast<unsigned char>(origen[i])));
         i++;
     }
     destino[i] = '\0';
 }
 
-// Implementa una busqueda insensible a mayusculas o minusculas 
 bool contieneSubcadena(const char* texto, const char* subcadena) {
-    char t[100], sub[100];
-    aMinusculas(texto, t);
-    aMinusculas(subcadena, sub);
+    char t[256], sub[256];
+    aMinusculas(texto, t, sizeof(t));
+    aMinusculas(subcadena, sub, sizeof(sub));
     return strstr(t, sub) != nullptr;
 }
 
-// ========================
-// CONFIGURACION DEL TALLER
-// ========================
+// ====================================
+// CONFIGURACIÓN DEL SISTEMA Y TALLER
+// ====================================
+
+void inicializarSistemaArchivos() {
+    #ifdef _WIN32
+        _mkdir("datos");
+    #else
+        mkdir("datos", 0777);
+    #endif
+
+    inicializarArchivo("datos/vehiculos.bin");
+    inicializarArchivo("datos/mecanicos.bin");
+    inicializarArchivo("datos/repuestos.bin");
+    inicializarArchivo("datos/ordenes.bin");
+}
 
 bool cargarTaller(Taller &t) {
-    fstream archivo("taller.bin", ios::in | ios::binary);
-    if (!archivo.is_open()) {
-        return false; // El archivo no existe, es el primer arranque
+    return cargarTallerArchivo(t);
+}
+
+void guardarTaller(const Taller &t) {
+    guardarTallerArchivo(t);
+}
+
+// ====================
+// MÓDULO DE VEHÍCULOS
+// ==================== 
+
+bool agregarVehiculo(Vehiculo &datos, string &motivoFallo) {
+    if (datos.anio < 1950 || datos.anio > 2027) {
+        motivoFallo = "El anio de fabricacion debe estar comprendido entre 1950 y 2027.";
+        return false;
     }
-    
-    // Como es la excepción, no tiene ArchivoHeader. Leemos directo la estructura
-    archivo.read(reinterpreter_cast<char*>(&t), sizeof(Taller));
-    archivo.close();
-    return true;
-}
-
-void guardarTaller(Taller t) {
-    t.fechaCreacion = time(nullptr);
-    t.fechaUltimaModificacion = t.fechaCreacion;
-    
-    // Se guarda como un único registro sin header
-    fstream archivo("taller.bin", ios::out | ios::binary);
-    archivo.write(reinterpreter_cast<char*>(&t), sizeof(Taller));
-    archivo.close();
-}
-
-// ########################
-// MOTOR BASE: PERSISTENCIA
-// ########################
-
-void inicializarArchivoBase(const char* ruta) {
-    fstream archivo(ruta, ios::in | ios::binary);
-    if (!archivo.is_open()) {
-        archivo.clear();
-        archivo.open(ruta, ios::out | ios::binary);
-        ArchivoHeader h = {0, 1, 0, 1}; // cant:0, proxID:1, activos:0, ver:1
-        archivo.write(reinterpreter_cast<chat*>(&h), sizeof(ArchivoHeader));
-        archivo.close();
-    } else {
-        archivo.close();
-    }
-}
-
-long calcularPosicion(int id, size_t sizeEstructura) {
-    return sizeof(ArchivoHeader) + (id - 1) * sizeEstructura;
-}
-
-// =====================
-// MODULO DE VEHICULOS
-// =====================
-
-bool agregarVehiculo(Vehiculo &datos) {
-    Vehiculo temp;
-    if (buscarVehiculoPorPlaca(datos.placa, temp)) {
-        return false; // Placa ya registrada
-    }
-
-    fstream archivo("vehiculos.bin", ios::in | ios::out | ios::binary);
-    if (!archivo.is_open()) return false; // Igual a un cout advirtiendo que no se pudo abrir el archivo
-
-    // Leer Header
-    ArchivoHeader h;
-    archivo.seekg(0, ios::beg);
-    archivo.read(reinterpreter_cast<char*>(&h), sizeof(ArchivoHeader));
-
-    // Preparar metadatos
-    datos.id = h.proximoID;
-    datos.eliminado = false;
-    datos.fechaCreacion = time(nullptr);
-    datos.fechaUltimaModificacion = datos.fechaCreacion;
-
-    // Escribir al final
-    archivo.seekp(0, ios::end);
-    archivo.write(reinterpreter_cast<char*>(&datos), sizeof(Vehiculo));
-
-    // Actualizar Header
-    h.cantidadRegistros++;
-    h.registrosActivos++;
-    h.proximoID++;
-    
-    archivo.seekp(0, ios::beg);
-    archivo.write(reinterpreter_cast<char*>(&h), sizeof(ArchivoHeader));
-    archivo.close();
-    
-    return true;
-}
-
-bool buscarVehiculoPorID(int id, Vehiculo &resultado) {
-    fstream archivo("vehiculos.bin", ios::in | ios::binary);
-    if (!archivo.is_open()) return false;
-
-    ArchivoHeader h;
-    archivo.read((char*)&h, sizeof(ArchivoHeader));
-    if (id < 1 || id >= h.proximoID) {
-        archivo.close();
+    if (datos.kilometraje < 0) {
+        motivoFallo = "El kilometraje no puede ser un valor negativo.";
         return false;
     }
 
-    // ACCESO ALEATORIO: Saltamos a la posición exacta (seekg)
-    long posicion = calcularPosicion(id, sizeof(Vehiculo));
-    archivo.seekg(posicion, ios::beg);
-    archivo.read((char*)&resultado, sizeof(Vehiculo));
-    archivo.close();
+    // Placa unica entre los vehículos activos
+    Vehiculo existente;
+    if (buscarVehiculoPorPlaca(datos.placa, existente)) {
+        motivoFallo = "Ya existe un vehiculo activo registrado con la placa '" + string(datos.placa) + "'.";
+        return false;
+    }
 
-    return !resultado.eliminado;
+    if (!guardarVehiculoCrudo(datos)) {
+        motivoFallo = "No se pudo escribir en vehiculos.bin.";
+        return false;
+    }
+    return true;
+}
+
+bool buscarVehiculoPorID(int id, Vehiculo &resultado, bool &fueEliminado, long &posicionBytes) {
+    fueEliminado = false;
+    posicionBytes = 0;
+
+    if (!leerVehiculoPorID(id, resultado, &posicionBytes)) {
+        return false; // El ID no existe en el archivo
+    }
+
+    if (resultado.eliminado) {
+        fueEliminado = true;
+        return false; // Según sección 11: La lógica retorna false y reporta si fue eliminado
+    }
+
+    return true;
 }
 
 bool buscarVehiculoPorPlaca(const char* placa, Vehiculo &resultado) {
-    fstream archivo("vehiculos.bin", ios::in | ios::binary);
-    if (!archivo.is_open()) return false;
-
     ArchivoHeader h;
-    archivo.read((char*)&h, sizeof(ArchivoHeader));
+    if (!leerHeader("datos/vehiculos.bin", h)) return false;
 
-    // Búsqueda secuencial solo para la placa
-    for (int i = 0; i < h.cantidadRegistros; i++) {
-        archivo.read((char*)&resultado, sizeof(Vehiculo));
-        if (!resultado.eliminado && strcmp(resultado.placa, placa) == 0) {
-            archivo.close();
-            return true; 
+    for (int i = 1; i <= h.cantidadRegistros; i++) {
+        Vehiculo v;
+        if (leerVehiculoPorID(i, v)) {
+            if (!v.eliminado && strcmp(v.placa, placa) == 0) {
+                resultado = v;
+                return true;
+            }
         }
     }
-    archivo.close();
     return false;
 }
 
-bool listarVehiculos(Vehiculo resultados[], int &cantidad) {
+bool buscarVehiculosPorPropietario(const char* subcadena, Vehiculo resultados[], int &cantidad, bool &hayMas) {
     cantidad = 0;
-    fstream archivo("datos/vehiculos.bin", ios::in | ios::binary);
-    if (!archivo.is_open()) return false;
+    hayMas = false;
 
     ArchivoHeader h;
-    archivo.read((char*)&h, sizeof(ArchivoHeader));
+    if (!leerHeader("datos/vehiculos.bin", h)) return false;
 
-    Vehiculo temp;
-    for (int i = 0; i < h.cantidadRegistros; i++) {
-        archivo.read((char*)&temp, sizeof(Vehiculo));
-        if (!temp.eliminado && cantidad < 100) { // Limitamos para no desbordar RAM
-            resultados[cantidad] = temp;
-            cantidad++;
+    for (int i = 1; i <= h.cantidadRegistros; i++) {
+        Vehiculo v;
+        if (leerVehiculoPorID(i, v)) {
+            if (!v.eliminado && contieneSubcadena(v.nombrePropietario, subcadena)) {
+                if (cantidad < MAX_RESULTADOS) {
+                    resultados[cantidad++] = v;
+                } else {
+                    hayMas = true;
+                    break;
+                }
+            }
         }
     }
-    archivo.close();
     return cantidad > 0;
 }
 
-bool actualizarVehiculo(int id, Vehiculo datosNuevos) {
-    Vehiculo vActual;
-    if (!buscarVehiculoPorID(id, vActual)) return false; 
+bool listarVehiculos(Vehiculo resultados[], int &cantidad, bool &hayMas) {
+    cantidad = 0;
+    hayMas = false;
 
-    // Copiamos datos permitidos
+    ArchivoHeader h;
+    if (!leerHeader("datos/vehiculos.bin", h)) return false;
+
+    for (int i = 1; i <= h.cantidadRegistros; i++) {
+        Vehiculo v;
+        if (leerVehiculoPorID(i, v)) {
+            if (!v.eliminado) {
+                if (cantidad < MAX_RESULTADOS) {
+                    resultados[cantidad++] = v;
+                } else {
+                    hayMas = true;
+                    break;
+                }
+            }
+        }
+    }
+    return cantidad > 0;
+}
+
+bool actualizarVehiculo(int id, const Vehiculo &datosNuevos, string &motivoFallo) {
+    Vehiculo vActual;
+    bool elim = false;
+    long pos = 0;
+    if (!buscarVehiculoPorID(id, vActual, elim, pos)) {
+        if (elim) {
+            motivoFallo = "El vehiculo fue eliminado logicamente.";
+        } else {
+            motivoFallo = "El vehiculo no existe.";
+        }
+        return false;
+    }
+
+    if (datosNuevos.anio < 1950 || datosNuevos.anio > 2027) {
+        motivoFallo = "El ano del vehiculo debe estar entre 1950 y 2027.";
+        return false;
+    }
+
+    // No cambia placa, kilometraje ni ID
     strcpy(vActual.marca, datosNuevos.marca);
     strcpy(vActual.modelo, datosNuevos.modelo);
     vActual.anio = datosNuevos.anio;
     strcpy(vActual.nombrePropietario, datosNuevos.nombrePropietario);
     strcpy(vActual.cedulaPropietario, datosNuevos.cedulaPropietario);
     strcpy(vActual.telefonoPropietario, datosNuevos.telefonoPropietario);
-    
-    vActual.fechaUltimaModificacion = time(nullptr);
 
-    // Escribimos en su posición original (seekp)
-    fstream archivo("datos/vehiculos.bin", ios::in | ios::out | ios::binary);
-    long posicion = calcularPosicion(id, sizeof(Vehiculo));
-    archivo.seekp(posicion, ios::beg);
-    archivo.write((char*)&vActual, sizeof(Vehiculo));
-    archivo.close();
-
-    return true;
-}
-
-bool eliminarVehiculo(int id) {
-    Vehiculo v;
-    if (!buscarVehiculoPorID(id, v)) return false;
-
-    // Faltaria verificar si tiene ordenes activas buscando en ordenes.bin
-
-    v.eliminado = true; // Borrado lógico
-    v.fechaUltimaModificacion = time(nullptr);
-
-    fstream archivo("datos/vehiculos.bin", ios::in | ios::out | ios::binary);
-    long posicion = calcularPosicion(id, sizeof(Vehiculo));
-    archivo.seekp(posicion, ios::beg);
-    archivo.write((char*)&v, sizeof(Vehiculo));
-
-    // Descontar activos del header
-    ArchivoHeader h;
-    archivo.seekg(0, ios::beg);
-    archivo.read((char*)&h, sizeof(ArchivoHeader));
-    h.registrosActivos--;
-    archivo.seekp(0, ios::beg);
-    archivo.write((char*)&h, sizeof(ArchivoHeader));
-
-    archivo.close();
-    return true;
-}
-
-// =================
-// MODULO MECANICOS
-// =================
-
-bool registrarMecanico(Mecanico &datos) {
-    Mecanico temp;
-    if (buscarMecanicoPorCedula(datos.cedula, temp)) {
-        return false; // Cedula duplicada
-    }
-    if (especialidadValida(datos.especialidad)) {
+    if (!sobrescribirVehiculo(vActual)) {
+        motivoFallo = "Fallo al escribir la actualizacion en el archivo de vehiculos.";
         return false;
     }
-    ArchivoHeader h;
-    fstream archivo("mecanicos.bin", ios::in | ios::out |ios::binary);
-    if (!archivo.is_open()) return false;
-    archivo.seekg(0, ios::beg);
-    archivo.read(reinterpret_cast<char*>(&h), sizeof(ArchivoHeader));
-
-    datos.id = h.proximoID;
-    datos.eliminado = false;
-    datos.fechaCreacion = time(nullptr);
-    datos.fechaUltimaModificacion = datos.fechaCreacion;
-    archivo.seekp(0, ios::end);
-
-    h.cantidadRegistros++;
-    h.registrosActivos++;
-    h.proximoID++;
-    
-    archivo.seekp(0, ios::beg);
-    archivo.write(reinterpret_cast<char*>(&datos), sizeof(ArchivoHeader));
     return true;
 }
+
+bool eliminarVehiculo(int id, string &motivoFallo) {
+    Vehiculo v;
+    bool elim = false;
+    long pos = 0;
+    if (!buscarVehiculoPorID(id, v, elim, pos)) {
+        if (elim) {
+            motivoFallo = "El vehiculo ya se encuentra eliminado.";
+        } else {
+            motivoFallo = "El vehiculo no existe.";
+        }
+        return false;
+    }
+
+    // Rechazado si el vehículo tiene ordenes en cualquier estado
+    ArchivoHeader hOrd;
+    if (leerHeader("datos/ordenes.bin", hOrd)) {
+        for (int i = 1; i <= hOrd.cantidadRegistros; i++) {
+            OrdenServicio o;
+            if (leerOrdenPorID(i, o)) {
+                if (o.idVehiculo == id) {
+                    motivoFallo = "No se puede eliminar el vehiculo porque tiene registrada la orden #" +
+                                  to_string(o.id) + " en estado " + o.estado + ".";
+                    return false;
+                }
+            }
+        }
+    }
+
+    if (!marcarVehiculoEliminado(id)) {
+        motivoFallo = "Error al marcar el vehiculo como eliminado en disco.";
+        return false;
+    }
+    return true;
+}
+
+// ====================
+// MÓDULO DE MECÁNICOS
+// ====================
 
 bool especialidadValida(const char* esp) {
-        return (strcmp(esp, "MOTOR") == 0 || 
-                strcmp(esp, "FRENOS") == 0 || 
-                strcmp(esp, "ELECTRICIDAD") == 0 || 
-                strcmp(esp, "SUSPENSION") == 0 || 
-                strcmp(esp, "GENERAL") == 0);
+    return (strcmp(esp, "MOTOR") == 0 ||
+            strcmp(esp, "FRENOS") == 0 ||
+            strcmp(esp, "ELECTRICIDAD") == 0 ||
+            strcmp(esp, "SUSPENSION") == 0 ||
+            strcmp(esp, "GENERAL") == 0);
 }
 
-bool buscarMecanicoPorID(int id, Mecanico &resultado) {
-    ifstream archivo("mecanico.bin", ios::binary);
-    if (!archivo.is_open()) return false;
-
-    ArchivoHeader h;
-    archivo.read(reinterpret_cast<char*>(&h), sizeof(ArchivoHeader));
-    if (id >= 1 && id < h.proximoID) {
+bool registrarMecanico(Mecanico &datos, string &motivoFallo) {
+    if (!especialidadValida(datos.especialidad)) {
+        motivoFallo = "Especialidad invalida. Debe ser MOTOR, FRENOS, ELECTRICIDAD, SUSPENSION o GENERAL.";
         return false;
     }
 
-    long posicion = calcularPosicion(id, sizeof(Mecanico));
-    archivo.seekg(posicion, ios::beg);
-    archivo.read(reinterpret_cast<char*>(&posicion), sizeof(Mecanico));
-    archivo.close();
+    // Regla 5.3: Cédula única
+    Mecanico existente;
+    if (buscarMecanicoPorCedula(datos.cedula, existente)) {
+        motivoFallo = "Ya existe un mecanico registrado con la cedula '" + string(datos.cedula) + "'.";
+        return false;
+    }
+
+    if (!guardarMecanicoCrudo(datos)) {
+        motivoFallo = "Error de persistencia: no se pudo escribir en mecanicos.bin.";
+        return false;
+    }
+    return true;
+}
+
+bool buscarMecanicoPorID(int id, Mecanico &resultado, bool &fueEliminado, long *posicionBytes) {
+    fueEliminado = false;
+    if (!leerMecanicoPorID(id, resultado, posicionBytes)) {
+        return false;
+    }
+
+    if (resultado.eliminado) {
+        fueEliminado = true;
+        return false; // La logica retorna false para mecánicos inactivos en búsquedas estándar
+    }
+    return true;
+}
+
+bool obtenerMecanicoHistorico(int id, Mecanico &resultado) {
+    // Obtiene un mecanico este activo o dado de baja 
+    return leerMecanicoPorID(id, resultado, nullptr);
 }
 
 bool buscarMecanicoPorCedula(const char* cedula, Mecanico &resultado) {
-    fstream archivo("mecanicos.bin", ios::in | ios::binary);
     ArchivoHeader h;
-    for (int i = 0; i < h.cantidadRegistros; i++) {
-        archivo.read(reinterpret_cast<char*>(&h), sizeof(Mecanico));
-        if (!resultado.eliminado && strcmp(resultado.cedula, cedula) == 0) {
-            return true;
+    if (!leerHeader("datos/mecanicos.bin", h)) return false;
+
+    for (int i = 1; i <= h.cantidadRegistros; i++) {
+        Mecanico m;
+        if (leerMecanicoPorID(i, m)) {
+            if (!m.eliminado && strcmp(m.cedula, cedula) == 0) {
+                resultado = m;
+                return true;
+            }
         }
     }
-    archivo.close();
-}
-
-bool listarMecanicos(Mecanico resultados[], int &cantidad) {
-    cantidad = 0;
-    ifstream archivo("mecanicos.bin", ios::binary);
-    if (!archivo.is_open()) return false;
-
-    ArchivoHeader h;
-    archivo.read(reinterpret_cast<char*>(&h), sizeof(ArchivoHeader));
-
-    Mecanico temp;
-    for (int i = 0; i < h.cantidadRegistros; i++) {
-        archivo.read(reinterpret_cast<char*>(&h), sizeof(Mecanico));
-        if (!temp.eliminado && cantidad < 100) {
-            resultados[cantidad] = temp;
-            cantidad++;
-        }   
-    }
-    archivo.close();
-    return cantidad > 0;
-}
-
-// =================
-// MODULO REPUESTOS
-// =================
-
-bool registrarRepuesto(Repuesto &datos) {
-    Repuesto temp;
-    // Validamos que el código no exista previamente y que los valores sean positivos[cite: 7]
-    if (buscarRepuestoPorCodigo(datos.codigo, temp)) return false; 
-    if (datos.precio <= 0 || datos.stock < 0 || datos.stockmin < 0) return false;
-
-    fstream archivo("repuestos.bin", ios::in | ios::out | ios::binary);
-    if (!archivo.is_open()) return false;
-
-    ArchivoHeader h;
-    archivo.seekg(0, ios::beg);
-    archivo.read((char*)&h, sizeof(ArchivoHeader));
-
-    datos.id = h.proximoID;
-    datos.eliminado = false;
-    datos.fechaCreacion = time(nullptr);
-    datos.fechaUltimaModificacion = datos.fechaCreacion;
-
-    archivo.seekp(0, ios::end);
-    archivo.write((char*)&datos, sizeof(Repuesto));
-
-    h.cantidadRegistros++;
-    h.registrosActivos++;
-    h.proximoID++;
-    
-    archivo.seekp(0, ios::beg);
-    archivo.write((char*)&h, sizeof(ArchivoHeader));
-    archivo.close();
-    
-    return true;
-}
-
-bool buscarRepuestoPorID(int id, Repuesto &resultado) {
-    fstream archivo("repuestos.bin", ios::in | ios::binary);
-    if (!archivo.is_open()) return false;
-
-    ArchivoHeader h;
-    archivo.read((char*)&h, sizeof(ArchivoHeader));
-    if (id < 1 || id >= h.proximoID) {
-        archivo.close();
-        return false;
-    }
-
-    // ACCESO ALEATORIO
-    long posicion = calcularPosicion(id, sizeof(Repuesto));
-    archivo.seekg(posicion, ios::beg);
-    archivo.read((char*)&resultado, sizeof(Repuesto));
-    archivo.close();
-
-    return !resultado.eliminado;
-}
-
-bool buscarRepuestoPorCodigo(const char* codigo, Repuesto &resultado) {
-    fstream archivo("repuestos.bin", ios::in | ios::binary);
-    if (!archivo.is_open()) return false;
-
-    ArchivoHeader h;
-    archivo.read((char*)&h, sizeof(ArchivoHeader));
-
-    for (int i = 0; i < h.cantidadRegistros; i++) {
-        archivo.read((char*)&resultado, sizeof(Repuesto));
-        if (!resultado.eliminado && strcmp(resultado.codigo, codigo) == 0) {
-            archivo.close();
-            return true;
-        }
-    }
-    archivo.close();
     return false;
 }
 
-bool registrarEntradaMercancia(int idRepuesto, int cantidadAdicional) {
-    if (cantidadAdicional <= 0) return false;
-    
-    Repuesto r;
-    if (!buscarRepuestoPorID(idRepuesto, r)) return false;
-
-    // Actualizamos los datos
-    r.stock += cantidadAdicional;
-    r.fechaUltimaModificacion = time(nullptr);
-
-    // Sobrescribimos en la misma posición exacta
-    fstream archivo("repuestos.bin", ios::in | ios::out | ios::binary);
-    long posicion = calcularPosicion(idRepuesto, sizeof(Repuesto));
-    archivo.seekp(posicion, ios::beg);
-    archivo.write((char*)&r, sizeof(Repuesto));
-    archivo.close();
-
-    return true;
-}
-
-bool listarRepuestos(Repuesto resultados[], int &cantidad) {
-    cantidad = 0;
-    fstream archivo("datos/repuestos.bin", ios::in | ios::binary);
-    if (!archivo.is_open()) return false;
-
+int contarOrdenesAbiertasMecanico(int idMecanico) {
+    int total = 0;
     ArchivoHeader h;
-    archivo.read((char*)&h, sizeof(ArchivoHeader));
+    if (!leerHeader("datos/ordenes.bin", h)) return 0;
 
-    Repuesto temp;
-    for (int i = 0; i < h.cantidadRegistros; i++) {
-        archivo.read((char*)&temp, sizeof(Repuesto));
-        if (!temp.eliminado && cantidad < 100) {
-            resultados[cantidad] = temp;
-            cantidad++;
+    for (int i = 1; i <= h.cantidadRegistros; i++) {
+        OrdenServicio o;
+        if (leerOrdenPorID(i, o)) {
+            if (!o.eliminado && o.idMecanico == idMecanico && strcmp(o.estado, "ABIERTA") == 0) {
+                total++;
+            }
         }
     }
-    archivo.close();
+    return total;
+}
+
+bool listarMecanicos(Mecanico resultados[], int &cantidad, bool &hayMas) {
+    cantidad = 0;
+    hayMas = false;
+
+    ArchivoHeader h;
+    if (!leerHeader("datos/mecanicos.bin", h)) return false;
+
+    // Regla 5.3: Activos y dados de baja (marcados como tales)
+    for (int i = 1; i <= h.cantidadRegistros; i++) {
+        Mecanico m;
+        if (leerMecanicoPorID(i, m)) {
+            if (cantidad < MAX_RESULTADOS) {
+                resultados[cantidad++] = m;
+            } else {
+                hayMas = true;
+                break;
+            }
+        }
+    }
     return cantidad > 0;
 }
 
-bool cambiarPrecioRepuesto(int idRepuesto, float nuevoPrecio) {
-    if (nuevoPrecio <= 0) return false;
-
-    Repuesto r;
-    if (!buscarRepuestoPorID(idRepuesto, r)) return false;
-
-    r.precio = nuevoPrecio;
-    r.fechaUltimaModificacion = time(nullptr);
-
-    fstream archivo("repuestos.bin", ios::in | ios::out | ios::binary);
-    long posicion = calcularPosicion(idRepuesto, sizeof(Repuesto));
-    archivo.seekp(posicion, ios::beg);
-    archivo.write((char*)&r, sizeof(Repuesto));
-    archivo.close();
-
-    return true;
-}
-
-bool eliminarRepuesto(int id) {
-    Repuesto r;
-    if (!buscarRepuestoPorID(id, r)) return false;
-
-    // Se validara si aparece en una orden cuando se arme ordenes.bin
-
-    r.eliminado = true;
-    r.fechaUltimaModificacion = time(nullptr);
-
-    fstream archivo("datos/repuestos.bin", ios::in | ios::out | ios::binary);
-    long posicion = calcularPosicion(id, sizeof(Repuesto));
-    archivo.seekp(posicion, ios::beg);
-    archivo.write((char*)&r, sizeof(Repuesto));
-
-    ArchivoHeader h;
-    archivo.seekg(0, ios::beg);
-    archivo.read((char*)&h, sizeof(ArchivoHeader));
-    h.registrosActivos--;
-    archivo.seekp(0, ios::beg);
-    archivo.write((char*)&h, sizeof(ArchivoHeader));
-
-    archivo.close();
-    return true;
-}
-
-// ===========================
-// MODULO ORDENES DE SERVICIO
-// ===========================
-
-bool abrirOrdenServicio(int idVehiculo, int idMecanico, const char* fechaApertura, const char* descripcionFalla, int kmIngreso, ordenServicio &resultado) {
-    Vehiculo v;
-    if (!buscarVehiculoPorID(idVehiculo, v)) return false;
-
+bool eliminarMecanico(int id, string &motivoFallo) {
     Mecanico m;
-    if (!buscarMecanicoPorID(idMecanico, m) || m.eliminado) return false; // Mecánico debe estar activo
-
-    // Validar en el archivo de órdenes las reglas de negocio
-    fstream archivo("ordenes.bin", ios::in | ios::out | ios::binary);
-    if (!archivo.is_open()) return false;
-    
-    ArchivoHeader h;
-    archivo.read((char*)&h, sizeof(ArchivoHeader));
-
-    int ordenesAbiertasMecanico = 0;
-    ordenServicio temp;
-    
-    for (int i = 0; i < h.cantidadRegistros; i++) {
-        archivo.read((char*)&temp, sizeof(ordenServicio));
-        if (!temp.eliminado && strcmp(temp.estado, "ABIERTA") == 0) {
-            if (temp.idVehiculo == idVehiculo) {
-                archivo.close();
-                return false; // El vehículo ya tiene una orden abierta
-            }
-            if (temp.idMecanico == idMecanico) {
-                ordenesAbiertasMecanico++;
-            }
-        }
-    }
-    
-    if (ordenesAbiertasMecanico >= 3) {
-        archivo.close();
-        return false; // Límite de 3 órdenes por mecánico
-    }
-    if (kmIngreso < v.km) {
-        archivo.close();
+    bool fueEliminado = false;
+    if (!buscarMecanicoPorID(id, m, fueEliminado)) {
+        motivoFallo = fueEliminado ? "El mecanico ya fue dado de baja previamente." : "El mecanico no existe.";
         return false;
     }
 
-    // PASO 1: Actualizar kilometraje del vehículo
-    v.km = kmIngreso;
-    actualizarVehiculo(idVehiculo, v);
+    // Regla 5.3: Rechazado si el mecánico tiene órdenes ABIERTAS
+    int abiertas = contarOrdenesAbiertasMecanico(id);
+    if (abiertas > 0) {
+        motivoFallo = "No se puede dar de baja: el mecanico tiene " + to_string(abiertas) + " orden(es) ABIERTA(S).";
+        return false;
+    }
 
-    // PASO 2: Construir y guardar la orden
-    resultado.id = h.proximoID;
+    if (!marcarMecanicoEliminado(id)) {
+        motivoFallo = "Error al marcar la baja del mecanico en disco.";
+        return false;
+    }
+    return true;
+}
+
+// ====================
+// MÓDULO DE REPUESTOS
+// ====================
+
+bool registrarRepuesto(Repuesto &datos, string &motivoFallo) {
+    if (datos.precio <= 0) {
+        motivoFallo = "El precio unitario debe ser mayor a 0.";
+        return false;
+    }
+    if (datos.stock < 0) {
+        motivoFallo = "El stock inicial no puede ser negativo.";
+        return false;
+    }
+    if (datos.stockMinimo < 0) {
+        motivoFallo = "El stock minimo de alerta no puede ser negativo.";
+        return false;
+    }
+
+    // Código único entre los repuestos activos
+    Repuesto existente;
+    if (buscarRepuestoPorCodigo(datos.codigo, existente)) {
+        motivoFallo = "Ya existe un repuesto activo registrado con el codigo '" + string(datos.codigo) + "'.";
+        return false;
+    }
+
+    if (!guardarRepuestoCrudo(datos)) {
+        motivoFallo = "Error de persistencia: no se pudo escribir en repuestos.bin.";
+        return false;
+    }
+    return true;
+}
+
+bool buscarRepuestoPorID(int id, Repuesto &resultado, bool &fueEliminado, long *posicionBytes) {
+    fueEliminado = false;
+    if (!leerRepuestoPorID(id, resultado, posicionBytes)) {
+        return false;
+    }
+
+    if (resultado.eliminado) {
+        fueEliminado = true;
+        return false;
+    }
+    return true;
+}
+
+bool buscarRepuestoPorCodigo(const char* codigo, Repuesto &resultado) {
+    ArchivoHeader h;
+    if (!leerHeader("datos/repuestos.bin", h)) return false;
+
+    for (int i = 1; i <= h.cantidadRegistros; i++) {
+        Repuesto r;
+        if (leerRepuestoPorID(i, r)) {
+            if (!r.eliminado && strcmp(r.codigo, codigo) == 0) {
+                resultado = r;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool buscarRepuestoPorNombreParcial(const char* subcadena, Repuesto resultados[], int &cantidad, bool &hayMas) {
+    cantidad = 0;
+    hayMas = false;
+
+    ArchivoHeader h;
+    if (!leerHeader("datos/repuestos.bin", h)) return false;
+
+    for (int i = 1; i <= h.cantidadRegistros; i++) {
+        Repuesto r;
+        if (leerRepuestoPorID(i, r)) {
+            if (!r.eliminado && contieneSubcadena(r.nombre, subcadena)) {
+                if (cantidad < MAX_RESULTADOS) {
+                    resultados[cantidad++] = r;
+                } else {
+                    hayMas = true;
+                    break;
+                }
+            }
+        }
+    }
+    return cantidad > 0;
+}
+
+bool registrarEntradaMercancia(int idRepuesto, int cantidadAdicional, string &motivoFallo) {
+    if (cantidadAdicional <= 0) {
+        motivoFallo = "La cantidad a ingresar debe ser mayor a 0.";
+        return false;
+    }
+
+    Repuesto r;
+    bool elim = false;
+    if (!buscarRepuestoPorID(idRepuesto, r, elim)) {
+        motivoFallo = elim ? "El repuesto se encuentra dado de baja." : "El repuesto no existe.";
+        return false;
+    }
+
+    r.stock += cantidadAdicional;
+    if (!sobrescribirRepuesto(r)) {
+        motivoFallo = "Error al actualizar el stock en el archivo de repuestos.";
+        return false;
+    }
+    return true;
+}
+
+bool listarRepuestos(Repuesto resultados[], int &cantidad, bool &hayMas) {
+    cantidad = 0;
+    hayMas = false;
+
+    ArchivoHeader h;
+    if (!leerHeader("datos/repuestos.bin", h)) return false;
+
+    for (int i = 1; i <= h.cantidadRegistros; i++) {
+        Repuesto r;
+        if (leerRepuestoPorID(i, r)) {
+            if (!r.eliminado) {
+                if (cantidad < MAX_RESULTADOS) {
+                    resultados[cantidad++] = r;
+                } else {
+                    hayMas = true;
+                    break;
+                }
+            }
+        }
+    }
+    return cantidad > 0;
+}
+
+bool cambiarPrecioRepuesto(int idRepuesto, float nuevoPrecio, string &motivoFallo) {
+    if (nuevoPrecio <= 0) {
+        motivoFallo = "El precio debe ser estrictamente mayor a 0.";
+        return false;
+    }
+
+    Repuesto r;
+    bool elim = false;
+    if (!buscarRepuestoPorID(idRepuesto, r, elim)) {
+        motivoFallo = elim ? "El repuesto fue dado de baja." : "El repuesto no existe.";
+        return false;
+    }
+
+    r.precio = nuevoPrecio;
+    if (!sobrescribirRepuesto(r)) {
+        motivoFallo = "Error al actualizar el precio en repuestos.bin.";
+        return false;
+    }
+    return true;
+}
+
+bool eliminarRepuesto(int id, string &motivoFallo) {
+    Repuesto r;
+    bool elim = false;
+    if (!buscarRepuestoPorID(id, r, elim)) {
+        motivoFallo = elim ? "El repuesto ya fue eliminado previamente." : "El repuesto no existe.";
+        return false;
+    }
+
+    // Rechazado si el repuesto aparece en el detalle de alguna orden
+    ArchivoHeader hOrd;
+    if (leerHeader("datos/ordenes.bin", hOrd)) {
+        for (int i = 1; i <= hOrd.cantidadRegistros; i++) {
+            OrdenServicio o;
+            if (leerOrdenPorID(i, o)) {
+                for (int j = 0; j < o.numDetalles; j++) {
+                    if (o.detalles[j].idRepuesto == id) {
+                        motivoFallo = "No se puede eliminar: el repuesto figura en el detalle de la Orden #" +
+                                      to_string(o.id) + " (Estado: " + o.estado + ").";
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
+    if (!marcarRepuestoEliminado(id)) {
+        motivoFallo = "Error al marcar el repuesto como eliminado en disco.";
+        return false;
+    }
+    return true;
+}
+
+// ==============================
+// MÓDULO DE ÓRDENES DE SERVICIO
+// ==============================
+
+bool abrirOrdenServicio(int idVehiculo, int idMecanico, const char* fechaApertura,
+                       const char* descripcionFalla, int kilometrajeIngreso,
+                       OrdenServicio &resultado, string &motivoFallo) {
+    // Validaciones previas completas antes de escribir
+    Vehiculo v;
+    bool elimV = false;
+    long posV = 0;
+    if (!buscarVehiculoPorID(idVehiculo, v, elimV, posV)) {
+        if (elimV) {
+            motivoFallo = "El vehiculo ingresado esta eliminado.";
+        } else {
+            motivoFallo = "El vehiculo con ID #" + to_string(idVehiculo) + " no existe.";
+        }
+        return false;
+    }
+
+    Mecanico m;
+    bool elimM = false;
+    if (!buscarMecanicoPorID(idMecanico, m, elimM)) {
+        if (elimM) {
+            motivoFallo = "El mecanico esta dado de baja y no puede recibir nuevas ordenes.";
+        } else {
+            motivoFallo = "El mecanico con ID #" + to_string(idMecanico) + " no existe.";
+        }
+        return false;
+    }
+
+    if (kilometrajeIngreso < v.kilometraje) {
+        motivoFallo = "El kilometraje de ingreso (" + to_string(kilometrajeIngreso) + " km) no puede ser menor al kilometraje actual del vehiculo (" + to_string(v.kilometraje) + " km).";
+        return false;
+    }
+
+    ArchivoHeader hOrd;
+    if (!leerHeader("datos/ordenes.bin", hOrd)) {
+        motivoFallo = "Error al leer el archivo de ordenes.";
+        return false;
+    }
+
+    int abiertasMecanico = 0;
+    for (int i = 1; i <= hOrd.cantidadRegistros; i++) {
+        OrdenServicio o;
+        if (leerOrdenPorID(i, o)) {
+            if (!o.eliminado && strcmp(o.estado, "ABIERTA") == 0) {
+                if (o.idVehiculo == idVehiculo) {
+                    motivoFallo = "El vehiculo ya tiene la orden #" + to_string(o.id) + " en estado ABIERTA.";
+                    return false;
+                }
+                if (o.idMecanico == idMecanico) {
+                    abiertasMecanico++;
+                }
+            }
+        }
+    }
+
+    if (abiertasMecanico >= 3) {
+        motivoFallo = "El mecanico " + string(m.nombre) + " ya tiene 3 ordenes ABIERTAS asignadas (limite maximo alcanzado).";
+        return false;
+    }
+
+    // Coordinación de escrituras: Orden primero luego Vehículo
     resultado.idVehiculo = idVehiculo;
     resultado.idMecanico = idMecanico;
     strcpy(resultado.fechaApertura, fechaApertura);
     strcpy(resultado.fechaCierre, "");
     strcpy(resultado.estado, "ABIERTA");
     strcpy(resultado.descripcionFalla, descripcionFalla);
-    resultado.kmIngreso = kmIngreso;
+    resultado.kilometrajeIngreso = kilometrajeIngreso;
     resultado.manoObra = 0.0f;
-    resultado.numDetalles = 0; // Inicia vacía
-    resultado.eliminado = false;
-    resultado.fechaCreacion = time(nullptr);
-    resultado.fechaUltimaModificacion = resultado.fechaCreacion;
+    resultado.numDetalles = 0;
 
-    archivo.clear();
-    archivo.seekp(0, ios::end);
-    archivo.write((char*)&resultado, sizeof(ordenServicio));
+    if (!guardarOrdenCruda(resultado)) {
+        motivoFallo = "Error de persistencia: fallo al crear la orden en ordenes.bin.";
+        return false;
+    }
 
-    h.cantidadRegistros++;
-    h.registrosActivos++;
-    h.proximoID++;
-    archivo.seekp(0, ios::beg);
-    archivo.write((char*)&h, sizeof(ArchivoHeader));
-    
-    archivo.close();
+    // Actualizar kilometraje del vehiculo en vehiculos.bin
+    v.kilometraje = kilometrajeIngreso;
+    if (!sobrescribirVehiculo(v)) {
+        motivoFallo = "Aviso: La orden fue creada pero hubo un fallo al actualizar el kilometraje en vehiculos.bin.";
+        return false;
+    }
+
     return true;
 }
 
-bool agregarRepuestoAOrden(int idOrden, int idRepuesto, int cantidad) {
-    ordenServicio o;
-    if (!buscarOrdenPorID(idOrden, o) || strcmp(o.estado, "ABIERTA") != 0) return false;
-    if (cantidad <= 0) return false;
+bool agregarRepuestoAOrden(int idOrden, int idRepuesto, int cantidad, string &motivoFallo) {
+    if (cantidad <= 0) {
+        motivoFallo = "La cantidad debe ser mayor a 0.";
+        return false;
+    }
+
+    OrdenServicio o;
+    if (!leerOrdenPorID(idOrden, o)) {
+        motivoFallo = "La orden #" + to_string(idOrden) + " no existe.";
+        return false;
+    }
+    if (strcmp(o.estado, "ABIERTA") != 0) {
+        motivoFallo = "La orden se encuentra " + string(o.estado) + ". Solo se pueden agregar repuestos a ordenes ABIERTAS.";
+        return false;
+    }
 
     Repuesto r;
-    if (!buscarRepuestoPorID(idRepuesto, r) || r.stock < cantidad) return false;
+    bool elimR = false;
+    if (!buscarRepuestoPorID(idRepuesto, r, elimR)) {
+        motivoFallo = elimR ? "El repuesto seleccionado esta dado de baja." : "El repuesto no existe.";
+        return false;
+    }
+    if (r.stock < cantidad) {
+        motivoFallo = "Stock insuficiente en inventario. Stock disponible: " + to_string(r.stock) + " unidades.";
+        return false;
+    }
 
-    r.stock -= cantidad;
-    fstream archivoRepuestos("repuestos.bin", ios::in | ios::out | ios::binary);
-    long posRep = calcularPosicion(idRepuesto, sizeof(Repuesto));
-    archivoRepuestos.seekp(posRep, ios::beg);
-    archivoRepuestos.write((char*)&r, sizeof(Repuesto));
-    archivoRepuestos.close();
-
-    bool encontrado = false;
+    int idxExistente = -1;
     for (int i = 0; i < o.numDetalles; i++) {
         if (o.detalles[i].idRepuesto == idRepuesto) {
-            o.detalles[i].cantidad += cantidad;
-            encontrado = true;
+            idxExistente = i;
             break;
         }
     }
 
-    if (!encontrado) {
-        if (o.numDetalles >= 15) return false;
+    if (idxExistente == -1 && o.numDetalles >= MAX_LINEAS_DETALLE) {
+        motivoFallo = "Limite de " + to_string(MAX_LINEAS_DETALLE) + " lineas de detalle alcanzado para esta orden.";
+        return false;
+    }
+
+    // Primero descontar repuesto del inventario, luego registrar en la orden
+    r.stock -= cantidad;
+    if (!sobrescribirRepuesto(r)) {
+        motivoFallo = "Error de persistencia al descontar el stock en repuestos.bin.";
+        return false;
+    }
+
+    if (idxExistente != -1) {
+        o.detalles[idxExistente].cantidad += cantidad;
+    } else {
         o.detalles[o.numDetalles].idRepuesto = idRepuesto;
         o.detalles[o.numDetalles].cantidad = cantidad;
-        o.detalles[o.numDetalles].precioUnitario = r.precio; 
+        o.detalles[o.numDetalles].precioUnitario = r.precio; // Precio historico vigente
         o.numDetalles++;
     }
 
-    fstream archivoOrdenes("ordenes.bin", ios::in | ios::out | ios::binary);
-    long posOrd = calcularPosicion(idOrden, sizeof(ordenServicio));
-    archivoOrdenes.seekp(posOrd, ios::beg);
-    archivoOrdenes.write((char*)&o, sizeof(ordenServicio));
-    archivoOrdenes.close();
+    if (!sobrescribirOrden(o)) {
+        motivoFallo = "Error de persistencia al actualizar las lineas de la orden en ordenes.bin.";
+        return false;
+    }
 
     return true;
 }
 
-bool quitarRepuestoDeOrden(int idOrden, int idRepuesto) {
-    ordenServicio o;
-    if (!buscarOrdenPorID(idOrden, o) || strcmp(o.estado, "ABIERTA") != 0) return false;
+bool quitarRepuestoDeOrden(int idOrden, int idRepuesto, string &motivoFallo) {
+    OrdenServicio o;
+    if (!leerOrdenPorID(idOrden, o)) {
+        motivoFallo = "La orden #" + to_string(idOrden) + " no existe.";
+        return false;
+    }
+    if (strcmp(o.estado, "ABIERTA") != 0) {
+        motivoFallo = "La orden se encuentra " + string(o.estado) + ". Solo se pueden modificar ordenes ABIERTAS.";
+        return false;
+    }
 
-    // Buscar en qué índice de la orden está el repuesto
-    int index = -1;
+    int idx = -1;
     for (int i = 0; i < o.numDetalles; i++) {
         if (o.detalles[i].idRepuesto == idRepuesto) {
-            index = i;
+            idx = i;
             break;
         }
     }
-    if (index == -1) return false;
 
-    // Devolver el stock al inventario
-    Repuesto r;
-    if (buscarRepuestoPorID(idRepuesto, r)) {
-        r.stock += o.detalles[index].cantidad;
-        r.fechaUltimaModificacion = time(nullptr);
-        
-        fstream archRep("datos/repuestos.bin", ios::in | ios::out | ios::binary);
-        long posRep = calcularPosicion(idRepuesto, sizeof(Repuesto));
-        archRep.seekp(posRep, ios::beg);
-        archRep.write((char*)&r, sizeof(Repuesto));
-        archRep.close();
+    if (idx == -1) {
+        motivoFallo = "El repuesto ID #" + to_string(idRepuesto) + " no se encuentra en el detalle de esta orden.";
+        return false;
     }
 
-    // Eliminar la línea del arreglo estático desplazando los elementos
-    for (int i = index; i < o.numDetalles - 1; i++) {
+    // Devolver unidades al stock en repuestos.bin
+    Repuesto r;
+    if (leerRepuestoPorID(idRepuesto, r)) {
+        r.stock += o.detalles[idx].cantidad;
+        sobrescribirRepuesto(r);
+    }
+
+    // Eliminar la línea desplazando los detalles
+    for (int i = idx; i < o.numDetalles - 1; i++) {
         o.detalles[i] = o.detalles[i + 1];
     }
     o.numDetalles--;
-    o.fechaUltimaModificacion = time(nullptr);
 
-    // Guardar la orden actualizada
-    fstream archOrd("ordenes.bin", ios::in | ios::out | ios::binary);
-    long posOrd = calcularPosicion(idOrden, sizeof(ordenServicio));
-    archOrd.seekp(posOrd, ios::beg);
-    archOrd.write((char*)&o, sizeof(ordenServicio));
-    archOrd.close();
-
+    if (!sobrescribirOrden(o)) {
+        motivoFallo = "Error al guardar los cambios en la orden.";
+        return false;
+    }
     return true;
 }
 
-bool cerrarOrdenServicio(int idOrden, const char* fechaCierre, float manoObra) {
-    ordenServicio o;
-    if (!buscarOrdenPorID(idOrden, o) || strcmp(o.estado, "ABIERTA") != 0) return false; 
-    if (manoObra < 0) return false;
-
-    // Debe quedar con al menos una linea o mano de obra > 0
-    if (o.numDetalles == 0 && manoObra <= 0) return false;
+bool cerrarOrdenServicio(int idOrden, const char* fechaCierre, float manoObra, string &motivoFallo) {
+    OrdenServicio o;
+    if (!leerOrdenPorID(idOrden, o)) {
+        motivoFallo = "La orden #" + to_string(idOrden) + " no existe.";
+        return false;
+    }
+    if (strcmp(o.estado, "ABIERTA") != 0) {
+        motivoFallo = "La orden ya se encuentra " + string(o.estado) + ". Solo se pueden cerrar ordenes ABIERTAS.";
+        return false;
+    }
+    if (manoObra < 0) {
+        motivoFallo = "El costo de mano de obra no puede ser negativo.";
+        return false;
+    }
+    if (o.numDetalles == 0 && manoObra <= 0) {
+        motivoFallo = "Una orden no puede cerrarse vacia: debe incluir al menos un repuesto o mano de obra > 0.";
+        return false;
+    }
 
     o.manoObra = manoObra;
     strcpy(o.fechaCierre, fechaCierre);
     strcpy(o.estado, "CERRADA");
-    o.fechaUltimaModificacion = time(nullptr);
 
-    // Guardar los cambios
-    fstream archivo("ordenes.bin", ios::in | ios::out | ios::binary);
-    long posicion = calcularPosicion(idOrden, sizeof(ordenServicio));
-    archivo.seekp(posicion, ios::beg);
-    archivo.write((char*)&o, sizeof(ordenServicio));
-    archivo.close();
-
+    if (!sobrescribirOrden(o)) {
+        motivoFallo = "Error al actualizar la orden en disco.";
+        return false;
+    }
     return true;
 }
 
-bool anularOrdenServicio(int idOrden) {
-    ordenServicio o;
-    if (!buscarOrdenPorID(idOrden, o)) return false;
-    
-    // Solo ABIERTAS o CERRADAS pueden anularse
+bool anularOrdenServicio(int idOrden, string &motivoFallo) {
+    OrdenServicio o;
+    if (!leerOrdenPorID(idOrden, o)) {
+        motivoFallo = "La orden #" + to_string(idOrden) + " no existe.";
+        return false;
+    }
+    if (strcmp(o.estado, "ANULADA") == 0) {
+        motivoFallo = "La orden ya se encuentra ANULADA.";
+        return false;
+    }
     if (strcmp(o.estado, "ABIERTA") != 0 && strcmp(o.estado, "CERRADA") != 0) {
+        motivoFallo = "Estado de orden invalido para anulacion.";
         return false;
     }
 
-    // Devolver al inventario las unidades de todas sus lineas
-    fstream archRep("datos/repuestos.bin", ios::in | ios::out | ios::binary);
-    if (archRep.is_open()) {
-        for (int i = 0; i < o.numDetalles; i++) {
-            Repuesto r;
-            long posRep = calcularPosicion(o.detalles[i].idRepuesto, sizeof(Repuesto));
-            
-            // Leemos el repuesto específico
-            archRep.seekg(posRep, ios::beg);
-            archRep.read((char*)&r, sizeof(Repuesto));
-            
-            // Le devolvemos su stock
+    // Devolver al inventario las unidades de todas sus líneas
+    for (int i = 0; i < o.numDetalles; i++) {
+        Repuesto r;
+        if (leerRepuestoPorID(o.detalles[i].idRepuesto, r)) {
             r.stock += o.detalles[i].cantidad;
-            r.fechaUltimaModificacion = time(nullptr);
-            
-            // Sobrescribimos en la misma posición
-            archRep.seekp(posRep, ios::beg);
-            archRep.write((char*)&r, sizeof(Repuesto));
+            sobrescribirRepuesto(r);
         }
-        archRep.close();
     }
 
-    // Cambiamos el estado de la orden
     strcpy(o.estado, "ANULADA");
-    o.fechaUltimaModificacion = time(nullptr);
-
-    // Guardamos la orden anulada
-    fstream archOrd("datos/ordenes.bin", ios::in | ios::out | ios::binary);
-    long posOrd = calcularPosicion(idOrden, sizeof(ordenServicio));
-    archOrd.seekp(posOrd, ios::beg);
-    archOrd.write((char*)&o, sizeof(ordenServicio));
-    archOrd.close();
-
+    if (!sobrescribirOrden(o)) {
+        motivoFallo = "Error al cambiar el estado de la orden en disco.";
+        return false;
+    }
     return true;
 }
 
-float calcularTotalOrden(const ordenServicio &o) {
-    float totalRepuestos = 0;
+float calcularTotalOrden(const OrdenServicio &o) {
+    float totalRepuestos = 0.0f;
     for (int i = 0; i < o.numDetalles; i++) {
         totalRepuestos += (o.detalles[i].cantidad * o.detalles[i].precioUnitario);
     }
     return o.manoObra + totalRepuestos;
 }
 
-bool buscarOrdenPorID(int id, ordenServicio &resultado) {
-    fstream archivo("ordenes.bin", ios::in | ios::binary);
-    if (!archivo.is_open()) return false;
-    ArchivoHeader h;
-    archivo.read((char*)&h, sizeof(ArchivoHeader));
-    
-    if (id < 1 || id >= h.proximoID) {
-        archivo.close();
+bool buscarOrdenPorID(int id, OrdenServicio &resultado, long *posicionBytes) {
+    if (!leerOrdenPorID(id, resultado, posicionBytes)) {
         return false;
     }
-    
-    long posicion = calcularPosicion(id, sizeof(ordenServicio));
-    archivo.seekg(posicion, ios::beg);
-    archivo.read((char*)&resultado, sizeof(ordenServicio));
-    archivo.close();
     return !resultado.eliminado;
 }
 
-bool listarOrdenesPorEstado(const char* estado, ordenServicio resultados[], int &cantidad) {
+bool listarOrdenesPorEstado(const char* estado, OrdenServicio resultados[], int &cantidad, bool &hayMas) {
     cantidad = 0;
-    fstream archivo("datos/ordenes.bin", ios::in | ios::binary);
-    if (!archivo.is_open()) return false;
+    hayMas = false;
 
     ArchivoHeader h;
-    archivo.read((char*)&h, sizeof(ArchivoHeader));
+    if (!leerHeader("datos/ordenes.bin", h)) return false;
 
-    ordenServicio temp;
-    for (int i = 0; i < h.cantidadRegistros; i++) {
-        archivo.read((char*)&temp, sizeof(ordenServicio));
-        // Si no esta eliminada, coincide el estado y no superamos el límite del arreglo
-        if (!temp.eliminado && strcmp(temp.estado, estado) == 0 && cantidad < 100) {
-            resultados[cantidad] = temp;
-            cantidad++;
+    for (int i = 1; i <= h.cantidadRegistros; i++) {
+        OrdenServicio o;
+        if (leerOrdenPorID(i, o)) {
+            if (!o.eliminado && strcmp(o.estado, estado) == 0) {
+                if (cantidad < MAX_RESULTADOS) {
+                    resultados[cantidad++] = o;
+                } else {
+                    hayMas = true;
+                    break;
+                }
+            }
         }
     }
-    archivo.close();
     return cantidad > 0;
+}
+
+// ===================================
+// MÓDULO DE REPORTES Y MANTENIMIENTO
+// ===================================
+
+bool generarReporteHistorialVehiculo(const char* placa, Vehiculo &vEncontrado,
+                                    OrdenServicio ordenesVehiculo[], int &cantOrdenes, float &totalFacturado) {
+    if (!buscarVehiculoPorPlaca(placa, vEncontrado)) {
+        return false;
+    }
+
+    cantOrdenes = 0;
+    totalFacturado = 0.0f;
+
+    ArchivoHeader hOrd;
+    if (!leerHeader("datos/ordenes.bin", hOrd)) return false;
+
+    for (int i = 1; i <= hOrd.cantidadRegistros; i++) {
+        OrdenServicio o;
+        if (leerOrdenPorID(i, o)) {
+            if (!o.eliminado && o.idVehiculo == vEncontrado.id) {
+                if (cantOrdenes < 100) {
+                    ordenesVehiculo[cantOrdenes++] = o;
+                }
+                if (strcmp(o.estado, "CERRADA") == 0) {
+                    totalFacturado += calcularTotalOrden(o);
+                }
+            }
+        }
+    }
+    return true;
+}
+
+bool generarReporteTopRepuestos(TopRepuesto top10[], int &cantEncontrados) {
+    cantEncontrados = 0;
+    for (int i = 0; i < 10; i++) {
+        top10[i].unidades = 0;
+        top10[i].codigo[0] = '\0';
+        top10[i].nombre[0] = '\0';
+    }
+
+    ArchivoHeader hRep;
+    if (!leerHeader("datos/repuestos.bin", hRep)) return false;
+
+    ArchivoHeader hOrd;
+    if (!leerHeader("datos/ordenes.bin", hOrd)) return false;
+
+    for (int i = 1; i <= hRep.cantidadRegistros; i++) {
+        Repuesto r;
+        if (!leerRepuestoPorID(i, r)) continue;
+
+        int consumos = 0;
+        for (int j = 1; j <= hOrd.cantidadRegistros; j++) {
+            OrdenServicio o;
+            if (leerOrdenPorID(j, o)) {
+                if (!o.eliminado && strcmp(o.estado, "CERRADA") == 0) {
+                    for (int k = 0; k < o.numDetalles; k++) {
+                        if (o.detalles[k].idRepuesto == r.id) {
+                            consumos += o.detalles[k].cantidad;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (consumos > 0) {
+            TopRepuesto nuevo;
+            strcpy(nuevo.codigo, r.codigo);
+            strcpy(nuevo.nombre, r.nombre);
+            nuevo.unidades = consumos;
+
+            for (int k = 0; k < 10; k++) {
+                if (nuevo.unidades > top10[k].unidades) {
+                    for (int m = 9; m > k; m--) {
+                        top10[m] = top10[m - 1];
+                    }
+                    top10[k] = nuevo;
+                    if (cantEncontrados < 10) cantEncontrados++;
+                    break;
+                }
+            }
+        }
+    }
+    return cantEncontrados > 0;
+}
+
+bool generarReporteFacturacionMecanicos(FilaFacturacionMecanico filas[], int &cantFilas, bool &hayMas) {
+    cantFilas = 0;
+    hayMas = false;
+
+    ArchivoHeader hMec;
+    if (!leerHeader("datos/mecanicos.bin", hMec)) return false;
+
+    ArchivoHeader hOrd;
+    if (!leerHeader("datos/ordenes.bin", hOrd)) return false;
+
+    for (int i = 1; i <= hMec.cantidadRegistros; i++) {
+        Mecanico m;
+        if (!leerMecanicoPorID(i, m)) continue;
+
+        FilaFacturacionMecanico fila;
+        strcpy(fila.nombre, m.nombre);
+        fila.dadoDeBaja = m.eliminado;
+        fila.ordenesCerradas = 0;
+        fila.totalManoObra = 0.0f;
+        fila.totalRepuestos = 0.0f;
+
+        for (int j = 1; j <= hOrd.cantidadRegistros; j++) {
+            OrdenServicio o;
+            if (leerOrdenPorID(j, o)) {
+                if (!o.eliminado && o.idMecanico == m.id && strcmp(o.estado, "CERRADA") == 0) {
+                    fila.ordenesCerradas++;
+                    fila.totalManoObra += o.manoObra;
+                    for (int d = 0; d < o.numDetalles; d++) {
+                        fila.totalRepuestos += (o.detalles[d].cantidad * o.detalles[d].precioUnitario);
+                    }
+                }
+            }
+        }
+
+        if (cantFilas < MAX_RESULTADOS) {
+            filas[cantFilas++] = fila;
+        } else {
+            hayMas = true;
+            break;
+        }
+    }
+    return cantFilas > 0;
+}
+
+bool crearBackup(string &rutaGenerada) {
+    time_t ahora = time(nullptr);
+    tm* t = localtime(&ahora);
+    char carpeta[128];
+    sprintf(carpeta, "datos/backup_%d-%02d-%02d_%02d-%02d",
+            t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min);
+    rutaGenerada = carpeta;
+
+    #ifdef _WIN32
+        _mkdir(carpeta);
+    #else
+        mkdir(carpeta, 0777);
+    #endif
+
+    const char* archivos[] = {"taller.bin", "vehiculos.bin", "mecanicos.bin", "repuestos.bin", "ordenes.bin"};
+    for (int i = 0; i < 5; i++) {
+        string origen = "datos/" + string(archivos[i]);
+        string destino = rutaGenerada + "/" + string(archivos[i]);
+
+        ifstream src(origen, ios::binary);
+        if (src.is_open()) {
+            ofstream dst(destino, ios::binary);
+            if (dst.is_open()) {
+                dst << src.rdbuf();
+                dst.close();
+            }
+            src.close();
+        }
+    }
+    return true;
+}
+
+void verificarIntegridadSistema(string errores[], int &cantErrores, int contadores[]) {
+    cantErrores = 0;
+    for (int i = 0; i < 4; i++) contadores[i] = 0;
+
+    // 1. Vehiculos
+    int maxVehID = 0;
+    ifstream fv("datos/vehiculos.bin", ios::binary);
+    if (fv.is_open()) {
+        fv.seekg(0, ios::end);
+        long tamArchivo = fv.tellg();
+        fv.seekg(0, ios::beg);
+
+        ArchivoHeader h;
+        fv.read(reinterpret_cast<char*>(&h), sizeof(ArchivoHeader));
+
+        long bytesEsperados = static_cast<long>(sizeof(ArchivoHeader)) +
+                              static_cast<long>(h.cantidadRegistros) * static_cast<long>(sizeof(Vehiculo));
+
+        int reales = (tamArchivo >= static_cast<long>(sizeof(ArchivoHeader))) ?
+                     static_cast<int>((tamArchivo - static_cast<long>(sizeof(ArchivoHeader))) / sizeof(Vehiculo)) : 0;
+        contadores[0] = reales;
+        maxVehID = h.proximoID - 1;
+
+        if (h.cantidadRegistros != reales || tamArchivo != bytesEsperados) {
+            errores[cantErrores++] = "ROTO: Header de vehiculos.bin indica " + to_string(h.cantidadRegistros) +
+                                     " registros; el archivo contiene " + to_string(reales);
+        }
+
+        int activos = 0;
+        for (int i = 0; i < reales; i++) {
+            Vehiculo v;
+            fv.read(reinterpret_cast<char*>(&v), sizeof(Vehiculo));
+            if (!v.eliminado) activos++;
+        }
+        if (h.registrosActivos != activos) {
+            errores[cantErrores++] = "ROTO: Header de vehiculos.bin indica " + to_string(h.registrosActivos) +
+                                     " activos; se contaron " + to_string(activos);
+        }
+        fv.close();
+    }
+
+    // 2. Mecanicos
+    int maxMecID = 0;
+    ifstream fm("datos/mecanicos.bin", ios::binary);
+    if (fm.is_open()) {
+        fm.seekg(0, ios::end);
+        long tamArchivo = fm.tellg();
+        fm.seekg(0, ios::beg);
+
+        ArchivoHeader h;
+        fm.read(reinterpret_cast<char*>(&h), sizeof(ArchivoHeader));
+
+        long bytesEsperados = static_cast<long>(sizeof(ArchivoHeader)) +
+                              static_cast<long>(h.cantidadRegistros) * static_cast<long>(sizeof(Mecanico));
+
+        int reales = (tamArchivo >= static_cast<long>(sizeof(ArchivoHeader))) ?
+                     static_cast<int>((tamArchivo - static_cast<long>(sizeof(ArchivoHeader))) / sizeof(Mecanico)) : 0;
+        contadores[1] = reales;
+        maxMecID = h.proximoID - 1;
+
+        if (h.cantidadRegistros != reales || tamArchivo != bytesEsperados) {
+            errores[cantErrores++] = "ROTO: Header de mecanicos.bin indica " + to_string(h.cantidadRegistros) +
+                                     " registros; el archivo contiene " + to_string(reales);
+        }
+
+        int activos = 0;
+        for (int i = 0; i < reales; i++) {
+            Mecanico m;
+            fm.read(reinterpret_cast<char*>(&m), sizeof(Mecanico));
+            if (!m.eliminado) activos++;
+        }
+        if (h.registrosActivos != activos) {
+            errores[cantErrores++] = "ROTO: Header de mecanicos.bin indica " + to_string(h.registrosActivos) +
+                                     " activos; se contaron " + to_string(activos);
+        }
+        fm.close();
+    }
+
+    // 3. Repuestos
+    int maxRepID = 0;
+    ifstream fr("datos/repuestos.bin", ios::binary);
+    if (fr.is_open()) {
+        fr.seekg(0, ios::end);
+        long tamArchivo = fr.tellg();
+        fr.seekg(0, ios::beg);
+
+        ArchivoHeader h;
+        fr.read(reinterpret_cast<char*>(&h), sizeof(ArchivoHeader));
+
+        long bytesEsperados = static_cast<long>(sizeof(ArchivoHeader)) +
+                              static_cast<long>(h.cantidadRegistros) * static_cast<long>(sizeof(Repuesto));
+
+        int reales = (tamArchivo >= static_cast<long>(sizeof(ArchivoHeader))) ?
+                     static_cast<int>((tamArchivo - static_cast<long>(sizeof(ArchivoHeader))) / sizeof(Repuesto)) : 0;
+        contadores[2] = reales;
+        maxRepID = h.proximoID - 1;
+
+        if (h.cantidadRegistros != reales || tamArchivo != bytesEsperados) {
+            errores[cantErrores++] = "ROTO: Header de repuestos.bin indica " + to_string(h.cantidadRegistros) +
+                                     " registros; el archivo contiene " + to_string(reales);
+        }
+
+        int activos = 0;
+        for (int i = 0; i < reales; i++) {
+            Repuesto r;
+            fr.read(reinterpret_cast<char*>(&r), sizeof(Repuesto));
+            if (!r.eliminado) activos++;
+            if (r.stock < 0) {
+                errores[cantErrores++] = "ROTO: Repuesto ID " + to_string(r.id) +
+                                         " tiene stock negativo (" + to_string(r.stock) + ")";
+            }
+        }
+        if (h.registrosActivos != activos) {
+            errores[cantErrores++] = "ROTO: Header de repuestos.bin indica " + to_string(h.registrosActivos) +
+                                     " activos; se contaron " + to_string(activos);
+        }
+        fr.close();
+    }
+
+    // 4. Ordenes de servicio
+    ifstream fo("datos/ordenes.bin", ios::binary);
+    if (fo.is_open()) {
+        fo.seekg(0, ios::end);
+        long tamArchivo = fo.tellg();
+        fo.seekg(0, ios::beg);
+
+        ArchivoHeader h;
+        fo.read(reinterpret_cast<char*>(&h), sizeof(ArchivoHeader));
+
+        long bytesEsperados = static_cast<long>(sizeof(ArchivoHeader)) +
+                              static_cast<long>(h.cantidadRegistros) * static_cast<long>(sizeof(OrdenServicio));
+
+        int reales = (tamArchivo >= static_cast<long>(sizeof(ArchivoHeader))) ?
+                     static_cast<int>((tamArchivo - static_cast<long>(sizeof(ArchivoHeader))) / sizeof(OrdenServicio)) : 0;
+        contadores[3] = reales;
+
+        if (h.cantidadRegistros != reales || tamArchivo != bytesEsperados) {
+            errores[cantErrores++] = "ROTO: Header de ordenes.bin indica " + to_string(h.cantidadRegistros) +
+                                     " registros; el archivo contiene " + to_string(reales);
+        }
+
+        int activos = 0;
+        for (int i = 0; i < reales; i++) {
+            OrdenServicio o;
+            fo.read(reinterpret_cast<char*>(&o), sizeof(OrdenServicio));
+            if (!o.eliminado) activos++;
+
+            // Vehículo existe
+            Vehiculo v;
+            bool elimV = false;
+            long posV = 0;
+            if (o.idVehiculo < 1 || o.idVehiculo > maxVehID || !buscarVehiculoPorID(o.idVehiculo, v, elimV, posV)) {
+                if (elimV) {
+                    if (strcmp(o.estado, "ABIERTA") == 0) {
+                        errores[cantErrores++] = "ROTO: Orden #" + to_string(o.id) + " esta ABIERTA pero su vehiculo ID " +
+                                                 to_string(o.idVehiculo) + " no esta activo";
+                    }
+                } else {
+                    errores[cantErrores++] = "ROTO: Orden #" + to_string(o.id) + " apunta al vehiculo ID " +
+                                             to_string(o.idVehiculo) + " (no existe en vehiculos.bin)";
+                }
+            }
+
+            // Mecánico existe y activo si la orden está abierta
+            Mecanico m;
+            if (o.idMecanico < 1 || o.idMecanico > maxMecID || !leerMecanicoPorID(o.idMecanico, m)) {
+                errores[cantErrores++] = "ROTO: Orden #" + to_string(o.id) + " apunta al mecanico ID " +
+                                         to_string(o.idMecanico) + " (no existe en mecanicos.bin)";
+            } else if (strcmp(o.estado, "ABIERTA") == 0 && m.eliminado) {
+                errores[cantErrores++] = "ROTO: Orden #" + to_string(o.id) + " esta ABIERTA pero su mecanico ID " +
+                                         to_string(o.idMecanico) + " no esta activo";
+            }
+
+            // Lineas de detalle cuyo repuesto no existe
+            for (int j = 0; j < o.numDetalles; j++) {
+                int idR = o.detalles[j].idRepuesto;
+                Repuesto r;
+                if (idR < 1 || idR > maxRepID || !leerRepuestoPorID(idR, r)) {
+                    errores[cantErrores++] = "ROTO: Orden #" + to_string(o.id) + " contiene en su detalle el repuesto ID " +
+                                             to_string(idR) + " (no existe en repuestos.bin)";
+                }
+            }
+        }
+        if (h.registrosActivos != activos) {
+            errores[cantErrores++] = "ROTO: Header de ordenes.bin indica " + to_string(h.registrosActivos) +
+                                     " activos; se contaron " + to_string(activos);
+        }
+        fo.close();
+    }
 }

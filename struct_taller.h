@@ -2,108 +2,133 @@
 #define STRUCT_TALLER_H
 
 #include <ctime>
-#include <string>
-using namespace std;
 
-// Estructura administrativa requerida para cada archivo (excepto taller.bin)
+// ==================================
+// CONSTANTES GLOBALES DEL SISTEMA
+// ==================================
+const int MAX_LINEAS_DETALLE = 15;  // Mínimo 15 lineas
+const int MAX_RESULTADOS = 20;      // Cantidad fija de resultados para búsquedas
+
+// ==============================================
+// METADATA ADMINISTRATIVA DE ARCHIVOS BINARIOS
+// ==============================================
 struct ArchivoHeader {
-    int cantidadRegistros; // Total histórico (incluye eliminados lógicamente)
+    int cantidadRegistros; // Total histórico (incluye eliminados)
     int proximoID;         // Siguiente ID a asignar
     int registrosActivos;  // Registros con eliminado == false
     int version;           // Versión del formato del archivo (iniciar en 1)
 };
 
-// Estructura del taller (Informacion unica)
+// ==================
+// ENTIDAD: TALLER
+// ==================
 struct Taller {
-    char nombre[100]; // Nombre del establecimiento
-    char rif[20]; // Identificar fiscal
-    char direccion[200]; // Ubicacion fisica del taller
-    char telefono[20]; // Telefono de contacto
+    char nombre[100];
+    char rif[20];
+    char direccion[200];
+    char telefono[20];
     time_t fechaCreacion;
     time_t fechaUltimaModificacion;
 };
 
-// Estructura del vehiculo
+// ==================
+// ENTIDAD: VEHICULO
+// ==================
 struct Vehiculo {
-    int id; // Llave primaria unica y autoincremental
-    char placa[10]; // Se valida en logica para que sea estrictamente unica
-    char marca[50]; 
+    int id;
+    char placa[10];
+    char marca[50];
     char modelo[50];
-    int anio; // Validado entre 1950 y 2027
-    int km; // Se actualiza automaticamente al abrir una orden
-    
-    // Los datos del propietario del vehiculo van anidados en la misma estructura del Vehiculo
-    
+    int anio;
+    int kilometraje;
     char nombrePropietario[100];
     char cedulaPropietario[20];
     char telefonoPropietario[20];
-    bool eliminado; // Para el borrado lógico
+    bool eliminado;
     time_t fechaCreacion;
     time_t fechaUltimaModificacion;
-    
 };
 
-// Estructura del mecanico
+// ===================
+// ENTIDAD: MECANICO 
+// ===================
 struct Mecanico {
     int id;
     char nombre[100];
-    char cedula[20]; // Validada en logica para ser unica
-    char telefono[20];
-    char especialidad[20]; // Validada como "MOTOR" "FRENOS", etc en la logica
+    char cedula[20];
+    char especialidad[20];
     char fechaIngreso[11];
     bool eliminado; // true = dado de baja
     time_t fechaCreacion;
     time_t fechaUltimaModificacion;
 };
 
-// Estructura del Repuesto
+// ================================
+// ENTIDAD: REPUESTO
+// ================================
 struct Repuesto {
     int id;
-    char codigo[20]; // Codigo unico alfanumerico
+    char codigo[20];
     char nombre[100];
     char marca[50];
-    float precio; // Precio actual vigente  > 0
-    int stock; // Unidades disponibles
-    int stockmin; // Si stock <= stockmin se muestra 'Bajo stock'
+    float precio;
+    int stock;
+    int stockMinimo;
     bool eliminado;
     time_t fechaCreacion;
     time_t fechaUltimaModificacion;
 };
 
-// Estructura detalleOrden
-struct detalleOrden {
-    int idRepuesto; // Id del repuesto consumido
-    int cantidad; // Unidades usadas de este repuesto
-
-    // Se guarda el precio que tenia el repuesto en el momento exacto en el que se agrego, si se cambia el precio en el inventario la orden no se altera
-    float precioUnitario;
+// ============================
+// LÍNEA DE DETALLE DE ORDEN
+// ============================
+struct DetalleOrden {
+    int idRepuesto;       // ID del repuesto consumido
+    int cantidad;         // Unidades usadas
+    float precioUnitario; // Precio histórico vigente al momento de agregar
 };
 
-// Estructura ordenServicio
-struct ordenServicio {
+// =============================
+// ENTIDAD: ORDEN DE SERVICIO
+// =============================
+struct OrdenServicio {
     int id;
-    int idVehiculo; // Relacion con el vehiculo atendido
-    int idMecanico; // Relacion con el mecanico asignado
+    int idVehiculo;
+    int idMecanico;
     char fechaApertura[11];
-    char fechaCierre[11]; // Vacia mientras el estado sea 'Abierta'
-    char estado[12]; // 'Abierta, cerrada, anulada'
-    char descripcionFalla[200]; 
-    int kmIngreso; // Kilometraje al entrar, se valida que no sea menor al valor historico
-
-    // Se calcula dinamicamente sumando manoObra + sumatoria(cantidad * precioUnitario)
+    char fechaCierre[11];
+    char estado[12]; // "ABIERTA", "CERRADA" o "ANULADA"
+    char descripcionFalla[200];
+    int kilometrajeIngreso;
     float manoObra;
 
-    detalleOrden detalles[15]; 
-    int numDetalles; 
-    bool eliminado;
+    DetalleOrden detalles[MAX_LINEAS_DETALLE];
+    int numDetalles;
+
+    bool eliminado; // Las ordenes no se eliminan: siempre false
     time_t fechaCreacion;
     time_t fechaUltimaModificacion;
 };
 
-// Estructura principal del sistema
-// El sysTaller gigante en RAM desaparece. Ya no hay arreglos dinámicos.
-struct sysTaller {
-    Taller taller; 
+// Alias de compatibilidad temporal durante la migración
+using ordenServicio = OrdenServicio;
+using detalleOrden = DetalleOrden;
+
+// ======================================
+// ESTRUCTURAS AUXILIARES PARA REPORTES
+// ======================================
+struct TopRepuesto {
+    char codigo[20];
+    char nombre[100];
+    int unidades;
+};
+
+struct FilaFacturacionMecanico {
+    char nombre[100];
+    bool dadoDeBaja;
+    int ordenesCerradas;
+    float totalManoObra;
+    float totalRepuestos;
 };
 
 #endif // STRUCT_TALLER_H
