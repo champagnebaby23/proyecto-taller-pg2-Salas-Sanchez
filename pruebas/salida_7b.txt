@@ -1,0 +1,51 @@
+
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: 
+=== MODULO DE MANTENIMIENTO ===
+1. Crear respaldo (Backup)
+2. Verificar integridad del sistema
+0. Volver
+Seleccione una opcion: ROTO: Orden #1 apunta al vehiculo ID 2 (no existe o no se pudo leer en vehiculos.bin)
+
+╔═══════════════════════════════════════════════════════╗
+║          REPORTE DE INTEGRIDAD DEL SISTEMA            ║
+╠═══════════════════════════════════════════════════════╣
+║ Vehiculos verificados : 1                             ║
+║ Mecanicos verificados : 1                             ║
+║ Repuestos verificados : 0                             ║
+║ Ordenes verificadas   : 1                             ║
+║                                                       ║
+║ Problemas encontrados : 1                             ║
+║ Estado: REQUIERE ATENCION                             ║
+╚═══════════════════════════════════════════════════════╝
+
+=== MODULO DE MANTENIMIENTO ===
+1. Crear respaldo (Backup)
+2. Verificar integridad del sistema
+0. Volver
+Seleccione una opcion: 
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: ¿Esta seguro de salir del sistema? (S/N): 
+Saliendo del sistema... ¡Hasta luego!

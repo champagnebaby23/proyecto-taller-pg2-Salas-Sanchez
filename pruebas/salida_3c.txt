@@ -1,0 +1,131 @@
+
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: 
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+--- VER DETALLE DE ORDEN ---
+Ingrese el ID de la orden: 
+========================================
+         ORDEN DE SERVICIO #1
+========================================
+Estado     : CERRADA
+Apertura   : 2026-11-18 | Cierre: 2026-11-19
+Vehiculo   : ABC101 - Toyota Corolla (120 km)
+Mecanico   : Jose Perez (MOTOR)
+Falla      : Mantenimiento preventivo
+----------------------------------------
+Codigo  Repuesto          Cant  P.Unit  Total   
+----------------------------------------
+R001    Filtro            4     10.00   40.00   
+R003    Bujia             2     8.00    16.00   
+R004    Pastillas         1     25.00   25.00   
+----------------------------------------
+Mano de obra: $50.00
+TOTAL       : $131.00
+========================================
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: 
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Buscar repuesto
+5. Listar repuestos
+6. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+--- INVENTARIO DE REPUESTOS (SOLO ACTIVOS) ---
+----------------------------------------
+ID           : 1
+Codigo       : R001
+Nombre       : Filtro (ACME)
+Precio       : $10.00
+Stock        : 16 (Minimo: 1)
+----------------------------------------
+----------------------------------------
+ID           : 2
+Codigo       : R002
+Nombre       : Aceite (ACME)
+Precio       : $15.00
+Stock        : 30 (Minimo: 1)
+----------------------------------------
+----------------------------------------
+ID           : 3
+Codigo       : R003
+Nombre       : Bujia (NGK)
+Precio       : $8.00
+Stock        : 38 (Minimo: 1)
+----------------------------------------
+----------------------------------------
+ID           : 4
+Codigo       : R004
+Nombre       : Pastillas (Brembo)
+Precio       : $25.00
+Stock        : 49 (Minimo: 1)
+----------------------------------------
+Total listados: 4
+
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Buscar repuesto
+5. Listar repuestos
+6. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: ¿Esta seguro de salir del sistema? (S/N): 
+Saliendo del sistema... ¡Hasta luego!

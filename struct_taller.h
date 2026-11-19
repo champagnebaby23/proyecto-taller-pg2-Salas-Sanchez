@@ -6,7 +6,7 @@
 // ==================================
 // CONSTANTES GLOBALES DEL SISTEMA
 // ==================================
-const int MAX_LINEAS_DETALLE = 15;  // Mínimo 15 lineas
+const int MAX_LINEAS_DETALLE = 15;  // Maximo de lineas por orden
 const int MAX_RESULTADOS = 20;      // Cantidad fija de resultados para búsquedas
 
 // ==============================================

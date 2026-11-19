@@ -2,17 +2,13 @@
 #include <iomanip>
 #include <cstring>
 #include <cctype>
+#include <cmath>
+#include <cstdlib>
 #include <sstream>
 #include <string>
+#include <vector>
 #include "struct_taller.h"
-#include "persistencia.h"
 #include "logica.h"
-
-#ifdef _WIN32
-    #include <direct.h>
-#else
-    #include <sys/stat.h>
-#endif
 
 using namespace std;
 
@@ -30,12 +26,28 @@ void menuMantenimiento();
 // FUNCIONES AUXILIARES DE ENTRADA SEGURA
 // =======================================
 
+static bool leerLineaCompleta(string &entrada) {
+    cin >> ws;
+    if (getline(cin, entrada)) return true;
+    if (cin.eof()) {
+        cout << "\nFin de entrada. Saliendo del sistema." << endl;
+        exit(EXIT_SUCCESS);
+    }
+    cin.clear();
+    cin.ignore(10000, '\n');
+    return false;
+}
+
+template <size_t N>
+static bool cadenaTerminada(const char (&campo)[N]) {
+    return memchr(campo, '\0', N) != nullptr;
+}
+
 void leerTextoNoVacio(const string &mensaje, char destino[], int tamMax) {
     string entrada;
     do {
         cout << mensaje;
-        cin >> ws;
-        getline(cin, entrada);
+        if (!leerLineaCompleta(entrada)) continue;
 
         if (entrada.empty()) {
             cout << "[!] Este campo no puede estar vacio. Intente nuevamente." << endl;
@@ -53,8 +65,7 @@ int leerEnteroSeguro(const string& mensaje, int min, int max) {
     while (true) {
         cout << mensaje;
         string entrada;
-        cin >> ws;
-        getline(cin, entrada);
+        if (!leerLineaCompleta(entrada)) continue;
         istringstream lectura(entrada);
 
         char sobrante;
@@ -79,16 +90,20 @@ bool contieneNumeros(const char* str) {
 
 void leerTextoSoloLetras(const string& mensaje, char destino[], int tamMax) {
     while (true) {
+        string entrada;
         cout << mensaje;
-        cin >> ws;
-        cin.getline(destino, tamMax);
+        if (!leerLineaCompleta(entrada)) continue;
 
-        if (strlen(destino) == 0) {
+        if (entrada.empty()) {
             cout << "[!] El campo no puede estar vacio. Intente de nuevo." << endl;
-        } else if (contieneNumeros(destino)) {
+        } else if (entrada.length() >= static_cast<size_t>(tamMax)) {
+            cout << "[!] El texto es demasiado largo (maximo " << tamMax - 1
+                 << " caracteres). Intente nuevamente." << endl;
+        } else if (contieneNumeros(entrada.c_str())) {
             cout << "[!] Entrada invalida. No se permiten numeros en este campo." << endl;
         } else {
-            break;
+            strcpy(destino, entrada.c_str());
+            return;
         }
     }
 }
@@ -97,23 +112,10 @@ void leerFormatoFijo(const string& mensaje, char destino[], int longitudEsperada
     string entrada;
     while (true) {
         cout << mensaje;
-        cin >> ws;
-        getline(cin, entrada);
-
-        bool formatoValido = true;
-        if (entrada.length() != static_cast<size_t>(longitudEsperada)) {
-            formatoValido = false;
-        } else {
-            for (int i = 0; i < longitudEsperada; i++) {
-                if ((i == 4 || i == 7) && entrada[i] == '-') {
-                    continue;
-                }
-                if (!isdigit(static_cast<unsigned char>(entrada[i]))) {
-                    formatoValido = false;
-                    break;
-                }
-            }
-        }
+        if (!leerLineaCompleta(entrada)) continue;
+        bool formatoValido = longitudEsperada == 10 &&
+                             entrada.length() == 10 &&
+                             fechaValidaISO(entrada.c_str());
 
         if (formatoValido) {
             strcpy(destino, entrada.c_str());
@@ -126,21 +128,17 @@ void leerFormatoFijo(const string& mensaje, char destino[], int longitudEsperada
 }
 
 void leerTelefonoSeguro(const string& mensaje, char destino[], int tamMax) {
-    string entrada;
-    bool valido = true;
-    do {
-        valido = true;
+    while (true) {
+        string entrada;
         cout << mensaje;
-        cin >> ws;
-        getline(cin, entrada);
+        if (!leerLineaCompleta(entrada)) continue;
 
         if (entrada.empty()) {
             cout << "[!] Este campo no puede estar vacio. Intente nuevamente.\n";
-            valido = false;
         } else if (entrada.length() >= static_cast<size_t>(tamMax)) {
             cout << "[!] El texto es demasiado largo. Intente nuevamente.\n";
-            valido = false;
         } else {
+            bool valido = true;
             for (char c : entrada) {
                 if (!isdigit(static_cast<unsigned char>(c)) && c != '-') {
                     cout << "[!] Error: El telefono solo debe contener numeros o guiones (-).\n";
@@ -148,26 +146,42 @@ void leerTelefonoSeguro(const string& mensaje, char destino[], int tamMax) {
                     break;
                 }
             }
+            if (valido) {
+                strcpy(destino, entrada.c_str());
+                return;
+            }
         }
-    } while (!valido);
-
-    strcpy(destino, entrada.c_str());
+    }
 }
 
 float leerFlotanteSeguro(const string& mensaje, float min, float max) {
-    float valor;
     while (true) {
         cout << mensaje;
-        cin >> valor;
+        string entrada;
+        if (!leerLineaCompleta(entrada)) continue;
+        istringstream lectura(entrada);
+        float valor;
+        char sobrante;
 
-        if (cin.fail() || valor < min || valor > max) {
+        if (!(lectura >> valor) || (lectura >> sobrante) ||
+            !isfinite(valor) || valor < min || valor > max) {
             cout << "[!] Entrada invalida. Ingrese un valor numerico valido (" << min << " a " << max << ")." << endl;
-            cin.clear();
-            cin.ignore(10000, '\n');
         } else {
-            cin.ignore(10000, '\n');
             return valor;
         }
+    }
+}
+
+char leerConfirmacionSiNo(const string& mensaje) {
+    while (true) {
+        cout << mensaje;
+        string entrada;
+        if (!leerLineaCompleta(entrada)) continue;
+        if (entrada.length() == 1) {
+            char respuesta = static_cast<char>(toupper(static_cast<unsigned char>(entrada[0])));
+            if (respuesta == 'S' || respuesta == 'N') return respuesta;
+        }
+        cout << "[!] Entrada invalida. Ingrese S o N." << endl;
     }
 }
 
@@ -176,6 +190,13 @@ float leerFlotanteSeguro(const string& mensaje, float min, float max) {
 // ======================
 
 void mostrarVehiculo(const Vehiculo &v) {
+    if (!cadenaTerminada(v.placa) || !cadenaTerminada(v.marca) ||
+        !cadenaTerminada(v.modelo) || !cadenaTerminada(v.nombrePropietario) ||
+        !cadenaTerminada(v.cedulaPropietario) ||
+        !cadenaTerminada(v.telefonoPropietario)) {
+        cout << "ERROR: El vehiculo contiene una cadena sin terminador." << endl;
+        return;
+    }
     cout << "----------------------------------------" << endl;
     cout << "ID          : " << v.id << endl;
     cout << "Placa       : " << v.placa << endl;
@@ -198,12 +219,9 @@ void menuRegistrarVehiculo() {
     leerTextoNoVacio("Cedula o RIF del propietario: ", v.cedulaPropietario, 20);
     leerTelefonoSeguro("Telefono del propietario: ", v.telefonoPropietario, 20);
 
-    char confirmacion;
-    cout << "¿Desea guardar este vehiculo? (S/N): ";
-    cin >> confirmacion;
-    cin.ignore(10000, '\n');
+    char confirmacion = leerConfirmacionSiNo("¿Desea guardar este vehiculo? (S/N): ");
 
-    if (confirmacion == 'S' || confirmacion == 's') {
+    if (confirmacion == 'S') {
         string motivoFallo;
         if (agregarVehiculo(v, motivoFallo)) {
             cout << "¡Vehiculo registrado exitosamente con ID #" << v.id << "!" << endl;
@@ -241,8 +259,11 @@ void menuBuscarVehiculo() {
     } else if (opcionBusqueda == 2) {
         char placa[10];
         leerTextoNoVacio("Ingrese la placa exacta: ", placa, 10);
-        if (buscarVehiculoPorPlaca(placa, vEncontrado)) {
+        string motivoFallo;
+        if (buscarVehiculoPorPlaca(placa, vEncontrado, motivoFallo)) {
             mostrarVehiculo(vEncontrado);
+        } else if (!motivoFallo.empty()) {
+            cout << "ERROR: " << motivoFallo << endl;
         } else {
             cout << "ERROR: Vehiculo con placa '" << placa << "' no encontrado entre los activos." << endl;
         }
@@ -252,7 +273,8 @@ void menuBuscarVehiculo() {
         Vehiculo lista[MAX_RESULTADOS];
         int cant = 0;
         bool hayMas = false;
-        if (buscarVehiculosPorPropietario(sub, lista, cant, hayMas)) {
+        string motivoFallo;
+        if (buscarVehiculosPorPropietario(sub, lista, cant, hayMas, motivoFallo)) {
             for (int i = 0; i < cant; i++) {
                 mostrarVehiculo(lista[i]);
             }
@@ -260,6 +282,8 @@ void menuBuscarVehiculo() {
             if (hayMas) {
                 cout << "AVISO: Existen mas de " << MAX_RESULTADOS << " coincidencias en el archivo. Se muestran los primeros " << MAX_RESULTADOS << "." << endl;
             }
+        } else if (!motivoFallo.empty()) {
+            cout << "ERROR: " << motivoFallo << endl;
         } else {
             cout << "No se encontraron vehiculos activos para ese propietario." << endl;
         }
@@ -270,8 +294,9 @@ void menuListarVehiculos() {
     Vehiculo lista[MAX_RESULTADOS];
     int cantidad = 0;
     bool hayMas = false;
+    string motivoFallo;
 
-    if (listarVehiculos(lista, cantidad, hayMas)) {
+    if (listarVehiculos(lista, cantidad, hayMas, motivoFallo)) {
         cout << "\n--- LISTADO GENERAL DE VEHICULOS (ACTIVOS) ---" << endl;
         for (int i = 0; i < cantidad; i++) {
             mostrarVehiculo(lista[i]);
@@ -280,6 +305,8 @@ void menuListarVehiculos() {
         if (hayMas) {
             cout << "AVISO: Existen mas registros en el archivo. Se muestran los primeros " << MAX_RESULTADOS << "." << endl;
         }
+    } else if (!motivoFallo.empty()) {
+        cout << "ERROR: " << motivoFallo << endl;
     } else {
         cout << "No hay vehiculos activos registrados." << endl;
     }
@@ -308,19 +335,10 @@ void menuActualizarVehiculo() {
     leerTextoNoVacio("Nueva Cedula o RIF del propietario: ", datosNuevos.cedulaPropietario, 20);
     leerTelefonoSeguro("Nuevo Telefono del propietario: ", datosNuevos.telefonoPropietario, 20);
 
-    char conf;
-    do {
-        cout << "¿Esta seguro de actualizar los datos de este vehiculo? (S/N): ";
-        cin >> conf;
-        if (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n') {
-            cout << "Entrada invalida. Ingrese S para Si o N para No." << endl;
-            cin.clear();
-            cin.ignore(10000, '\n');
-        }
-    } while (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n');
-    cin.ignore(10000, '\n');
+    char conf = leerConfirmacionSiNo(
+        "¿Esta seguro de actualizar los datos de este vehiculo? (S/N): ");
 
-    if (conf == 'S' || conf == 's') {
+    if (conf == 'S') {
         string motivoFallo;
         if (actualizarVehiculo(id, datosNuevos, motivoFallo)) {
             cout << "¡Vehiculo actualizado exitosamente en el archivo binario!" << endl;
@@ -336,19 +354,10 @@ void menuEliminarVehiculo() {
     cout << "\n--- ELIMINAR VEHICULO ---" << endl;
     int id = leerEnteroSeguro("Ingrese el ID del vehiculo a eliminar: ", 1, 999999);
 
-    char confirmacion;
-    do {
-        cout << "¿Esta seguro de eliminar este vehiculo? (S/N): ";
-        cin >> confirmacion;
-        if (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n') {
-            cout << "[!] Entrada invalida. Ingrese S o N.\n";
-            cin.clear();
-            cin.ignore(10000, '\n');
-        }
-    } while (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n');
-    cin.ignore(10000, '\n');
+    char confirmacion =
+        leerConfirmacionSiNo("¿Esta seguro de eliminar este vehiculo? (S/N): ");
 
-    if (confirmacion == 'S' || confirmacion == 's') {
+    if (confirmacion == 'S') {
         string motivoFallo;
         if (eliminarVehiculo(id, motivoFallo)) {
             cout << "¡Vehiculo eliminado exitosamente!" << endl;
@@ -387,6 +396,11 @@ void menuVehiculos() {
 // =====================
 
 void mostrarMecanico(const Mecanico &m) {
+    if (!cadenaTerminada(m.nombre) || !cadenaTerminada(m.cedula) ||
+        !cadenaTerminada(m.especialidad) || !cadenaTerminada(m.fechaIngreso)) {
+        cout << "ERROR: El mecanico contiene una cadena sin terminador." << endl;
+        return;
+    }
     cout << "----------------------------------------" << endl;
     cout << "ID           : " << m.id;
     if (m.eliminado) cout << " **(DADO DE BAJA)**";
@@ -417,19 +431,9 @@ void menuRegistrarMecanico() {
 
     leerFormatoFijo("Fecha de ingreso (YYYY-MM-DD): ", m.fechaIngreso, 10);
 
-    char confirmacion;
-    do {
-        cout << "¿Guardar mecanico? (S/N): ";
-        cin >> confirmacion;
-        if (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n') {
-            cout << "Entrada invalida. Ingrese S o N.\n";
-            cin.clear();
-            cin.ignore(10000, '\n');
-        }
-    } while (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n');
-    cin.ignore(10000, '\n');
+    char confirmacion = leerConfirmacionSiNo("¿Guardar mecanico? (S/N): ");
 
-    if (confirmacion == 'S' || confirmacion == 's') {
+    if (confirmacion == 'S') {
         string motivoFallo;
         if (registrarMecanico(m, motivoFallo)) {
             cout << "¡Mecanico registrado con ID #" << m.id << "!" << endl;
@@ -451,7 +455,13 @@ void menuBuscarMecanicoPorID() {
     if (buscarMecanicoPorID(idBuscado, m, fueEliminado, &posBytes)) {
         cout << "\n¡Mecanico activo encontrado! (Offset: " << posBytes << " bytes)" << endl;
         mostrarMecanico(m);
-        cout << "Ordenes ABIERTAS actuales: " << contarOrdenesAbiertasMecanico(m.id) << endl;
+        int abiertas = 0;
+        string motivoFallo;
+        if (contarOrdenesAbiertasMecanico(m.id, abiertas, motivoFallo)) {
+            cout << "Ordenes ABIERTAS actuales: " << abiertas << endl;
+        } else {
+            cout << "ERROR: " << motivoFallo << endl;
+        }
     } else if (fueEliminado) {
         cout << "AVISO: El mecanico con ID #" << idBuscado << " fue DADO DE BAJA del sistema." << endl;
     } else {
@@ -465,9 +475,12 @@ void menuBuscarMecanicoPorCedula() {
     leerTextoNoVacio("Ingrese la cedula del mecanico: ", cedula, 20);
 
     Mecanico m;
-    if (buscarMecanicoPorCedula(cedula, m)) {
+    string motivoFallo;
+    if (buscarMecanicoPorCedula(cedula, m, motivoFallo)) {
         cout << "\n¡Mecanico encontrado!" << endl;
         mostrarMecanico(m);
+    } else if (!motivoFallo.empty()) {
+        cout << "ERROR: " << motivoFallo << endl;
     } else {
         cout << "ERROR: No se encontro ningun mecanico activo con la cedula '" << cedula << "'." << endl;
     }
@@ -477,17 +490,26 @@ void menuListarMecanicos() {
     Mecanico lista[MAX_RESULTADOS];
     int cantidad = 0;
     bool hayMas = false;
+    string motivoFallo;
 
-    if (listarMecanicos(lista, cantidad, hayMas)) {
+    if (listarMecanicos(lista, cantidad, hayMas, motivoFallo)) {
         cout << "\n--- LISTADO DE MECANICOS (ACTIVOS Y DADOS DE BAJA) ---" << endl;
         for (int i = 0; i < cantidad; i++) {
             mostrarMecanico(lista[i]);
-            cout << "Ordenes Abiertas: " << contarOrdenesAbiertasMecanico(lista[i].id) << endl;
+            int abiertas = 0;
+            string motivoFallo;
+            if (contarOrdenesAbiertasMecanico(lista[i].id, abiertas, motivoFallo)) {
+                cout << "Ordenes Abiertas: " << abiertas << endl;
+            } else {
+                cout << "ERROR al contar ordenes abiertas: " << motivoFallo << endl;
+            }
         }
         cout << "Total listados: " << cantidad << endl;
         if (hayMas) {
             cout << "AVISO: Existen mas registros en el archivo. Se muestran los primeros " << MAX_RESULTADOS << "." << endl;
         }
+    } else if (!motivoFallo.empty()) {
+        cout << "ERROR: " << motivoFallo << endl;
     } else {
         cout << "No hay mecanicos registrados en el sistema." << endl;
     }
@@ -497,19 +519,10 @@ void menuEliminarMecanico() {
     cout << "\n--- DAR DE BAJA A MECANICO ---" << endl;
     int id = leerEnteroSeguro("Ingrese el ID del mecanico a dar de baja: ", 1, 999999);
 
-    char confirmacion;
-    do {
-        cout << "¿Esta seguro de dar de baja a este mecanico? (Borrado logico) (S/N): ";
-        cin >> confirmacion;
-        if (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n') {
-            cout << " Entrada invalida. Ingrese S o N.\n";
-            cin.clear();
-            cin.ignore(10000, '\n');
-        }
-    } while (confirmacion != 'S' && confirmacion != 's' && confirmacion != 'N' && confirmacion != 'n');
-    cin.ignore(10000, '\n');
+    char confirmacion = leerConfirmacionSiNo(
+        "¿Esta seguro de dar de baja a este mecanico? (Borrado logico) (S/N): ");
 
-    if (confirmacion == 'S' || confirmacion == 's') {
+    if (confirmacion == 'S') {
         string motivoFallo;
         if (eliminarMecanico(id, motivoFallo)) {
             cout << "¡Mecanico dado de baja exitosamente!" << endl;
@@ -549,6 +562,11 @@ void menuMecanicos() {
 // =====================
 
 void mostrarRepuesto(const Repuesto &r) {
+    if (!cadenaTerminada(r.codigo) || !cadenaTerminada(r.nombre) ||
+        !cadenaTerminada(r.marca)) {
+        cout << "ERROR: El repuesto contiene una cadena sin terminador." << endl;
+        return;
+    }
     cout << "----------------------------------------" << endl;
     cout << "ID           : " << r.id << endl;
     cout << "Codigo       : " << r.codigo << endl;
@@ -573,19 +591,9 @@ void menuRegistrarRepuesto() {
     r.stock = leerEnteroSeguro("Stock inicial (>= 0): ", 0, 1000000);
     r.stockMinimo = leerEnteroSeguro("Stock minimo de alerta (>= 0): ", 0, 1000000);
 
-    char conf;
-    do {
-        cout << "¿Guardar repuesto? (S/N): ";
-        cin >> conf;
-        if (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n') {
-            cout << "[!] Entrada invalida. Ingrese S o N." << endl;
-            cin.clear();
-            cin.ignore(10000, '\n');
-        }
-    } while (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n');
-    cin.ignore(10000, '\n');
+    char conf = leerConfirmacionSiNo("¿Guardar repuesto? (S/N): ");
 
-    if (conf == 'S' || conf == 's') {
+    if (conf == 'S') {
         string motivoFallo;
         if (registrarRepuesto(r, motivoFallo)) {
             cout << "¡Repuesto registrado exitosamente con ID #" << r.id << "!" << endl;
@@ -632,8 +640,11 @@ void menuBuscarRepuesto() {
     } else if (op == 2) {
         char cod[20];
         leerTextoNoVacio("Ingrese el codigo exacto: ", cod, 20);
-        if (buscarRepuestoPorCodigo(cod, r)) {
+        string motivoFallo;
+        if (buscarRepuestoPorCodigo(cod, r, motivoFallo)) {
             mostrarRepuesto(r);
+        } else if (!motivoFallo.empty()) {
+            cout << "ERROR: " << motivoFallo << endl;
         } else {
             cout << "ERROR: No se encontro ningun repuesto activo con el codigo '" << cod << "'." << endl;
         }
@@ -643,7 +654,8 @@ void menuBuscarRepuesto() {
         Repuesto lista[MAX_RESULTADOS];
         int cant = 0;
         bool hayMas = false;
-        if (buscarRepuestoPorNombreParcial(sub, lista, cant, hayMas)) {
+        string motivoFallo;
+        if (buscarRepuestoPorNombreParcial(sub, lista, cant, hayMas, motivoFallo)) {
             for (int i = 0; i < cant; i++) {
                 mostrarRepuesto(lista[i]);
             }
@@ -651,6 +663,8 @@ void menuBuscarRepuesto() {
             if (hayMas) {
                 cout << "AVISO: Existen mas coincidencias. Se muestran las primeras " << MAX_RESULTADOS << "." << endl;
             }
+        } else if (!motivoFallo.empty()) {
+            cout << "ERROR: " << motivoFallo << endl;
         } else {
             cout << "No se encontraron repuestos activos con ese nombre." << endl;
         }
@@ -674,8 +688,9 @@ void menuListarRepuestos() {
     Repuesto lista[MAX_RESULTADOS];
     int cantidad = 0;
     bool hayMas = false;
+    string motivoFallo;
 
-    if (listarRepuestos(lista, cantidad, hayMas)) {
+    if (listarRepuestos(lista, cantidad, hayMas, motivoFallo)) {
         cout << "\n--- INVENTARIO DE REPUESTOS (SOLO ACTIVOS) ---" << endl;
         for (int i = 0; i < cantidad; i++) {
             mostrarRepuesto(lista[i]);
@@ -684,6 +699,8 @@ void menuListarRepuestos() {
         if (hayMas) {
             cout << "AVISO: Existen mas registros en el inventario. Se muestran los primeros " << MAX_RESULTADOS << "." << endl;
         }
+    } else if (!motivoFallo.empty()) {
+        cout << "ERROR: " << motivoFallo << endl;
     } else {
         cout << "El inventario de repuestos esta vacio." << endl;
     }
@@ -693,19 +710,9 @@ void menuEliminarRepuesto() {
     cout << "\n--- ELIMINAR REPUESTO ---" << endl;
     int id = leerEnteroSeguro("Ingrese el ID del repuesto a eliminar: ", 1, 999999);
 
-    char conf;
-    do {
-        cout << "¿Esta seguro de eliminar este repuesto? (S/N): ";
-        cin >> conf;
-        if (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n') {
-            cout << "Entrada invalida. Ingrese S o N." << endl;
-            cin.clear();
-            cin.ignore(10000, '\n');
-        }
-    } while (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n');
-    cin.ignore(10000, '\n');
+    char conf = leerConfirmacionSiNo("¿Esta seguro de eliminar este repuesto? (S/N): ");
 
-    if (conf == 'S' || conf == 's') {
+    if (conf == 'S') {
         string motivoFallo;
         if (eliminarRepuesto(id, motivoFallo)) {
             cout << "¡Repuesto eliminado exitosamente!" << endl;
@@ -747,13 +754,31 @@ void menuRepuestos() {
 // ==============================
 
 void mostrarDetalleOrden(const OrdenServicio &o) {
+    float totalOrden = 0.0f;
+    if (!calcularTotalOrden(o, totalOrden)) {
+        cout << "ERROR: La orden contiene datos de detalle o importes invalidos." << endl;
+        return;
+    }
+
     Vehiculo v = {};
     bool elimV = false;
     long posV = 0;
-    buscarVehiculoPorID(o.idVehiculo, v, elimV, posV);
+    if (!buscarVehiculoPorID(o.idVehiculo, v, elimV, posV) && !elimV) {
+        cout << "ERROR: No se pudo recuperar el vehiculo de la orden." << endl;
+        return;
+    }
 
     Mecanico m = {};
-    obtenerMecanicoHistorico(o.idMecanico, m);
+    if (!obtenerMecanicoHistorico(o.idMecanico, m)) {
+        cout << "ERROR: No se pudo recuperar el mecanico de la orden." << endl;
+        return;
+    }
+    if (!cadenaTerminada(v.placa) || !cadenaTerminada(v.marca) ||
+        !cadenaTerminada(v.modelo) || !cadenaTerminada(m.nombre) ||
+        !cadenaTerminada(m.especialidad)) {
+        cout << "ERROR: La orden referencia datos con cadenas sin terminador." << endl;
+        return;
+    }
 
     cout << "\n========================================" << endl;
     cout << "         ORDEN DE SERVICIO #" << o.id << endl;
@@ -771,8 +796,15 @@ void mostrarDetalleOrden(const OrdenServicio &o) {
         Repuesto r = {};
         bool elimR = false;
         if (!buscarRepuestoPorID(o.detalles[i].idRepuesto, r, elimR)) {
-            // Podría estar eliminado pero se rescata para ver datos
-            leerRepuestoPorID(o.detalles[i].idRepuesto, r);
+            if (!obtenerRepuestoHistorico(o.detalles[i].idRepuesto, r)) {
+                cout << "ERROR: No se pudo recuperar el repuesto ID #"
+                     << o.detalles[i].idRepuesto << " de la orden." << endl;
+                return;
+            }
+        }
+        if (!cadenaTerminada(r.codigo) || !cadenaTerminada(r.nombre)) {
+            cout << "ERROR: El repuesto de la orden contiene una cadena sin terminador." << endl;
+            return;
         }
         float subtotal = o.detalles[i].cantidad * o.detalles[i].precioUnitario;
 
@@ -782,7 +814,7 @@ void mostrarDetalleOrden(const OrdenServicio &o) {
     }
     cout << "----------------------------------------" << endl;
     cout << "Mano de obra: $" << fixed << setprecision(2) << o.manoObra << endl;
-    cout << "TOTAL       : $" << fixed << setprecision(2) << calcularTotalOrden(o) << endl;
+    cout << "TOTAL       : $" << fixed << setprecision(2) << totalOrden << endl;
     cout << "========================================" << endl;
 }
 
@@ -850,25 +882,14 @@ void menuCerrarOrden() {
     cout << "\n--- CERRAR ORDEN DE SERVICIO ---" << endl;
     int idO = leerEnteroSeguro("ID de la orden: ", 1, 999999);
 
-    char fecha[11];
-    leerFormatoFijo("Fecha de cierre (YYYY-MM-DD): ", fecha, 10);
     float mano = leerFlotanteSeguro("Costo de mano de obra (>= 0): ", 0.0f, 1000000.0f);
 
-    char conf;
-    do {
-        cout << "¿Desea cerrar esta orden? (Ya no se podran agregar repuestos) (S/N): ";
-        cin >> conf;
-        if (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n') {
-            cout << "[!] Entrada invalida. Ingrese S o N." << endl;
-            cin.clear();
-            cin.ignore(10000, '\n');
-        }
-    } while (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n');
-    cin.ignore(10000, '\n');
+    char conf = leerConfirmacionSiNo(
+        "¿Desea cerrar esta orden? (Ya no se podran agregar repuestos) (S/N): ");
 
-    if (conf == 'S' || conf == 's') {
+    if (conf == 'S') {
         string motivoFallo;
-        if (cerrarOrdenServicio(idO, fecha, mano, motivoFallo)) {
+        if (cerrarOrdenServicio(idO, mano, motivoFallo)) {
             cout << "¡Orden cerrada exitosamente! Ya esta lista para facturar." << endl;
         } else {
             cout << "ERROR: " << motivoFallo << endl;
@@ -882,19 +903,10 @@ void menuAnularOrden() {
     cout << "\n--- ANULAR ORDEN DE SERVICIO ---" << endl;
     int idO = leerEnteroSeguro("ID de la orden a anular: ", 1, 999999);
 
-    char conf;
-    do {
-        cout << "¿Confirma la anulacion? (El stock de repuestos volvera automaticamente al inventario) (S/N): ";
-        cin >> conf;
-        if (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n') {
-            cout << "[!] Entrada invalida. Ingrese S o N." << endl;
-            cin.clear();
-            cin.ignore(10000, '\n');
-        }
-    } while (conf != 'S' && conf != 's' && conf != 'N' && conf != 'n');
-    cin.ignore(10000, '\n');
+    char conf = leerConfirmacionSiNo(
+        "¿Confirma la anulacion? (El stock de repuestos volvera automaticamente al inventario) (S/N): ");
 
-    if (conf == 'S' || conf == 's') {
+    if (conf == 'S') {
         string motivoFallo;
         if (anularOrdenServicio(idO, motivoFallo)) {
             cout << "¡Orden anulada exitosamente! El stock fue devuelto al inventario de repuestos." << endl;
@@ -912,7 +924,7 @@ void menuListarOrdenesPorEstado() {
     cout << "2. CERRADA" << endl;
     cout << "3. ANULADA" << endl;
 
-    int opcionEstado = leerEnteroSeguro("Seleccione una opcion: ", 1, 2);
+    int opcionEstado = leerEnteroSeguro("Seleccione una opcion: ", 1, 3);
     const char* estadoFiltro;
     if (opcionEstado == 1) {
         estadoFiltro = "ABIERTA";
@@ -925,8 +937,9 @@ void menuListarOrdenesPorEstado() {
     OrdenServicio lista[MAX_RESULTADOS];
     int cantidad = 0;
     bool hayMas = false;
+    string motivoFallo;
 
-    if (listarOrdenesPorEstado(estadoFiltro, lista, cantidad, hayMas)) {
+    if (listarOrdenesPorEstado(estadoFiltro, lista, cantidad, hayMas, motivoFallo)) {
         cout << "\nSe encontraron " << cantidad << " orden(es) en estado " << estadoFiltro << ":" << endl;
         for (int i = 0; i < cantidad; i++) {
             mostrarDetalleOrden(lista[i]);
@@ -934,6 +947,8 @@ void menuListarOrdenesPorEstado() {
         if (hayMas) {
             cout << "AVISO: Existen mas ordenes en este estado. Se muestran las primeras " << MAX_RESULTADOS << "." << endl;
         }
+    } else if (!motivoFallo.empty()) {
+        cout << "ERROR: " << motivoFallo << endl;
     } else {
         cout << "No se encontraron ordenes registradas con el estado " << estadoFiltro << "." << endl;
     }
@@ -985,29 +1000,58 @@ void menuReportes() {
             leerTextoNoVacio("Ingrese la placa exacta del vehiculo: ", placa, 10);
             Vehiculo v;
             OrdenServicio ords[100];
+            int inicio = 0;
             int cant = 0;
+            bool hayMas = false;
             float total = 0.0f;
+            string motivoFallo;
 
-            if (generarReporteHistorialVehiculo(placa, v, ords, cant, total)) {
+            if (generarReporteHistorialVehiculo(placa, v, inicio, ords, cant, hayMas, total,
+                                                motivoFallo)) {
                 cout << "\n--- HISTORIAL DEL VEHICULO: " << v.placa << " ---" << endl;
                 cout << "Propietario: " << v.nombrePropietario << " | " << v.marca << " " << v.modelo << " (" << v.anio << ")" << endl;
-                for (int i = 0; i < cant; i++) {
-                    Mecanico m = {};
-                    obtenerMecanicoHistorico(ords[i].idMecanico, m);
-                    cout << " - Orden #" << ords[i].id << " | Fecha: " << ords[i].fechaApertura
-                         << " | Mecanico: " << m.nombre << (m.eliminado ? " (BAJA)" : "")
-                         << " | Estado: " << ords[i].estado
-                         << " | Total: $" << fixed << setprecision(2) << calcularTotalOrden(ords[i]) << endl;
-                }
+                do {
+                    for (int i = 0; i < cant; i++) {
+                        float totalOrden = 0.0f;
+                        if (!calcularTotalOrden(ords[i], totalOrden)) {
+                            cout << "ERROR: La orden #" << ords[i].id
+                                 << " contiene datos de detalle o importes invalidos." << endl;
+                            break;
+                        }
+                        Mecanico m = {};
+                        if (!obtenerMecanicoHistorico(ords[i].idMecanico, m)) {
+                            cout << "ERROR: No se pudo recuperar el mecanico de la orden #"
+                                 << ords[i].id << "." << endl;
+                            break;
+                        }
+                        cout << " - Orden #" << ords[i].id << " | Fecha: " << ords[i].fechaApertura
+                             << " | Mecanico: " << m.nombre << (m.eliminado ? " (BAJA)" : "")
+                             << " | Estado: " << ords[i].estado
+                             << " | Total: $" << fixed << setprecision(2) << totalOrden << endl;
+                    }
+                    inicio += cant;
+                    if (hayMas) {
+                        if (!generarReporteHistorialVehiculo(placa, v, inicio, ords, cant,
+                                                             hayMas, total, motivoFallo)) {
+                            cout << "ERROR: " << (motivoFallo.empty()
+                                ? "No se pudo continuar leyendo el historial."
+                                : motivoFallo) << endl;
+                            break;
+                        }
+                    }
+                } while (hayMas);
                 cout << "Total Facturado (Ordenes CERRADAS): $" << fixed << setprecision(2) << total << endl;
+            } else if (!motivoFallo.empty()) {
+                cout << "ERROR: " << motivoFallo << endl;
             } else {
                 cout << "ERROR: Vehiculo con placa '" << placa << "' no encontrado." << endl;
             }
         } else if (opcion == 2) {
             TopRepuesto top10[10];
             int cantEncontrados = 0;
+            string motivoFallo;
             cout << "\n--- TOP 10: REPUESTOS MAS UTILIZADOS (ORDENES CERRADAS) ---" << endl;
-            if (generarReporteTopRepuestos(top10, cantEncontrados)) {
+            if (generarReporteTopRepuestos(top10, cantEncontrados, motivoFallo)) {
                 cout << left << setw(12) << "Codigo" << setw(25) << "Nombre" << "Unidades" << endl;
                 cout << "-----------------------------------------------" << endl;
                 for (int i = 0; i < cantEncontrados; i++) {
@@ -1015,6 +1059,8 @@ void menuReportes() {
                          << setw(25) << string(top10[i].nombre).substr(0, 24)
                          << top10[i].unidades << endl;
                 }
+            } else if (!motivoFallo.empty()) {
+                cout << "ERROR: " << motivoFallo << endl;
             } else {
                 cout << "No hay repuestos consumidos en ordenes cerradas." << endl;
             }
@@ -1022,8 +1068,9 @@ void menuReportes() {
             FilaFacturacionMecanico filas[MAX_RESULTADOS];
             int cantFilas = 0;
             bool hayMas = false;
+            string motivoFallo;
             cout << "\n--- FACTURACION POR MECANICO ---" << endl;
-            if (generarReporteFacturacionMecanicos(filas, cantFilas, hayMas)) {
+            if (generarReporteFacturacionMecanicos(filas, cantFilas, hayMas, motivoFallo)) {
                 cout << "╔══════════════════════╦═══════════╦═══════════╦═══════════╗" << endl;
                 cout << "║ Mecanico             ║  Ordenes  ║  M. obra  ║ Repuestos ║" << endl;
                 cout << "╠══════════════════════╬═══════════╬═══════════╬═══════════╣" << endl;
@@ -1038,6 +1085,8 @@ void menuReportes() {
                 if (hayMas) {
                     cout << "AVISO: Existen mas mecanicos en el archivo. Se muestran los primeros " << MAX_RESULTADOS << "." << endl;
                 }
+            } else if (!motivoFallo.empty()) {
+                cout << "ERROR: " << motivoFallo << endl;
             } else {
                 cout << "No hay mecanicos registrados." << endl;
             }
@@ -1060,22 +1109,22 @@ void menuMantenimiento() {
 
         if (opcion == 1) {
             string rutaBackup;
-            if (crearBackup(rutaBackup)) {
+            string motivoFallo;
+            if (crearBackup(rutaBackup, motivoFallo)) {
                 cout << "Respaldo creado exitosamente en: " << rutaBackup << endl;
             } else {
-                cout << "ERROR: Fallo al crear el respaldo." << endl;
+                cout << "ERROR: " << motivoFallo << endl;
             }
         } else if (opcion == 2) {
-            string errores[200];
-            int cantErrores = 0;
+            vector<string> errores;
             int contadores[4] = {0};
 
-            verificarIntegridadSistema(errores, cantErrores, contadores);
+            verificarIntegridadSistema(errores, contadores);
 
-            for (int i = 0; i < cantErrores; i++) {
+            for (size_t i = 0; i < errores.size(); i++) {
                 cout << errores[i] << endl;
             }
-            if (cantErrores > 0) cout << endl;
+            if (!errores.empty()) cout << endl;
 
             cout << "╔═══════════════════════════════════════════════════════╗" << endl;
             cout << "║          REPORTE DE INTEGRIDAD DEL SISTEMA            ║" << endl;
@@ -1085,8 +1134,8 @@ void menuMantenimiento() {
             cout << "║ Repuestos verificados : " << left << setw(30) << contadores[2] << "║" << endl;
             cout << "║ Ordenes verificadas   : " << left << setw(30) << contadores[3] << "║" << endl;
             cout << "║                                                       ║" << endl;
-            cout << "║ Problemas encontrados : " << left << setw(30) << cantErrores << "║" << endl;
-            cout << "║ Estado: " << left << setw(46) << (cantErrores == 0 ? "SISTEMA INTEGRO" : "REQUIERE ATENCION") << "║" << endl;
+            cout << "║ Problemas encontrados : " << left << setw(30) << errores.size() << "║" << endl;
+            cout << "║ Estado: " << left << setw(46) << (errores.empty() ? "SISTEMA INTEGRO" : "REQUIERE ATENCION") << "║" << endl;
             cout << "╚═══════════════════════════════════════════════════════╝" << endl;
         }
     } while (opcion != 0);
@@ -1097,10 +1146,19 @@ void menuMantenimiento() {
 // ==================================
 
 int main() {
-    inicializarSistemaArchivos();
+    string motivoFallo;
+    if (!inicializarSistemaArchivos(motivoFallo)) {
+        cerr << "ERROR al inicializar los archivos del sistema: " << motivoFallo << endl;
+        return 1;
+    }
 
     Taller miTaller = {};
-    if (!cargarTaller(miTaller)) {
+    bool primeraEjecucion = false;
+    if (!cargarTaller(miTaller, primeraEjecucion, motivoFallo)) {
+        cerr << "ERROR al cargar los datos del taller: " << motivoFallo << endl;
+        return 1;
+    }
+    if (primeraEjecucion) {
         cout << "==========================================" << endl;
         cout << "   PRIMER ARRANQUE - CONFIGURAR TALLER    " << endl;
         cout << "==========================================" << endl;
@@ -1109,7 +1167,10 @@ int main() {
         leerTextoNoVacio("Direccion: ", miTaller.direccion, 200);
         leerTelefonoSeguro("Telefono: ", miTaller.telefono, 20);
 
-        guardarTaller(miTaller);
+        if (!guardarTaller(miTaller, motivoFallo)) {
+            cerr << "ERROR al guardar los datos del taller: " << motivoFallo << endl;
+            return 1;
+        }
         cout << "\n¡Taller configurado exitosamente!\n";
     }
 
@@ -1138,19 +1199,10 @@ int main() {
             case 5: menuReportes(); break;
             case 6: menuMantenimiento(); break;
             case 0: {
-                char cont;
-                do {
-                    cout << "¿Esta seguro de salir del sistema? (S/N): ";
-                    cin >> cont;
-                    if (cont != 'S' && cont != 's' && cont != 'N' && cont != 'n') {
-                        cout << "[!] Entrada invalida. Ingrese S o N." << endl;
-                        cin.clear();
-                        cin.ignore(10000, '\n');
-                    }
-                } while (cont != 'S' && cont != 's' && cont != 'N' && cont != 'n');
-                cin.ignore(10000, '\n');
+                char cont = leerConfirmacionSiNo(
+                    "¿Esta seguro de salir del sistema? (S/N): ");
 
-                if (cont != 'S' && cont != 's') {
+                if (cont != 'S') {
                     opcion = -1;
                 } else {
                     cout << "\nSaliendo del sistema... ¡Hasta luego!" << endl;

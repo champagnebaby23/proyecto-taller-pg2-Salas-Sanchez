@@ -1,0 +1,90 @@
+
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: 
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+--- AGREGAR REPUESTO A ORDEN ---
+ID de la orden: ID del repuesto: Cantidad (> 0): ¡Repuesto agregado a la orden y stock descontado del inventario exitosamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+--- AGREGAR REPUESTO A ORDEN ---
+ID de la orden: ID del repuesto: Cantidad (> 0): ¡Repuesto agregado a la orden y stock descontado del inventario exitosamente!
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+--- QUITAR REPUESTO DE ORDEN ---
+ID de la orden: ID del repuesto a quitar de la linea: ¡Linea removida exitosamente! El stock ha sido devuelto al inventario de forma segura.
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+--- CERRAR ORDEN DE SERVICIO ---
+ID de la orden: Costo de mano de obra (>= 0): ¿Desea cerrar esta orden? (Ya no se podran agregar repuestos) (S/N): ¡Orden cerrada exitosamente! Ya esta lista para facturar.
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: ¿Esta seguro de salir del sistema? (S/N): 
+Saliendo del sistema... ¡Hasta luego!

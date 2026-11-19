@@ -1,0 +1,49 @@
+Taller de Pruebas
+J-12345678-9
+Av. Universidad
+0414-1111111
+1
+1
+ABC101
+Toyota
+Corolla
+2020
+100
+Ana Perez
+V-100
+0414-1000001
+S
+0
+2
+1
+Jose Perez
+V-101
+MOTOR
+2020-01-01
+S
+0
+6
+1
+0
+1
+1
+XYZ202
+Ford
+Focus
+2019
+100
+Luis Rojas
+V-200
+0414-1000002
+S
+0
+4
+1
+2
+1
+2026-11-18
+150
+Orden para restauracion parcial
+0
+0
+S

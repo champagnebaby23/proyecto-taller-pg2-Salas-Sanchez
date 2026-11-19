@@ -1,0 +1,147 @@
+
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: 
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+--- CERRAR ORDEN DE SERVICIO ---
+ID de la orden: Costo de mano de obra (>= 0): ¿Desea cerrar esta orden? (Ya no se podran agregar repuestos) (S/N): ¡Orden cerrada exitosamente! Ya esta lista para facturar.
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: 
+=== GESTION DE MECANICOS ===
+1. Registrar mecanico
+2. Buscar mecanico por ID
+3. Buscar mecanico por cedula
+4. Listar mecanicos
+5. Dar de baja mecanico
+0. Volver
+Seleccione opcion: 
+--- DAR DE BAJA A MECANICO ---
+Ingrese el ID del mecanico a dar de baja: ¿Esta seguro de dar de baja a este mecanico? (Borrado logico) (S/N): ¡Mecanico dado de baja exitosamente!
+
+=== GESTION DE MECANICOS ===
+1. Registrar mecanico
+2. Buscar mecanico por ID
+3. Buscar mecanico por cedula
+4. Listar mecanicos
+5. Dar de baja mecanico
+0. Volver
+Seleccione opcion: 
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: 
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+--- VER DETALLE DE ORDEN ---
+Ingrese el ID de la orden: 
+========================================
+         ORDEN DE SERVICIO #1
+========================================
+Estado     : CERRADA
+Apertura   : 2026-11-18 | Cierre: 2026-11-19
+Vehiculo   : ABC101 - Toyota Corolla (120 km)
+Mecanico   : Jose Perez (MOTOR) (BAJA)
+Falla      : Orden de prueba para baja
+----------------------------------------
+Codigo  Repuesto          Cant  P.Unit  Total   
+----------------------------------------
+----------------------------------------
+Mano de obra: $50.00
+TOTAL       : $50.00
+========================================
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+--- ABRIR ORDEN DE SERVICIO ---
+ID del vehiculo: ID del mecanico: Fecha de apertura (YYYY-MM-DD): Kilometraje de ingreso (>= 0): Descripcion de la falla: ERROR: El mecanico esta dado de baja y no puede recibir nuevas ordenes.
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: ¿Esta seguro de salir del sistema? (S/N): 
+Saliendo del sistema... ¡Hasta luego!

@@ -1,0 +1,51 @@
+
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: 
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+--- ANULAR ORDEN DE SERVICIO ---
+ID de la orden a anular: ¿Confirma la anulacion? (El stock de repuestos volvera automaticamente al inventario) (S/N): ¡Orden anulada exitosamente! El stock fue devuelto al inventario de repuestos.
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: ¿Esta seguro de salir del sistema? (S/N): 
+Saliendo del sistema... ¡Hasta luego!

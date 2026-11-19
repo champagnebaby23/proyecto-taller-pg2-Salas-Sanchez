@@ -1,0 +1,86 @@
+Taller de Pruebas
+J-12345678-9
+Av. Universidad
+0414-1111111
+1
+1
+ABC101
+Toyota
+Corolla
+2020
+100
+Ana Perez
+V-100
+0414-1000001
+S
+1
+XYZ202
+Ford
+Focus
+2019
+200
+Luis Rojas
+V-200
+0414-1000002
+S
+1
+MNO303
+Chevrolet
+Cruze
+2018
+300
+Maria Diaz
+V-300
+0414-1000003
+S
+0
+2
+1
+Jose Perez
+V-101
+MOTOR
+2020-01-01
+S
+1
+Ana Villalobos
+V-102
+FRENOS
+2021-02-02
+S
+0
+3
+1
+R001
+Filtro
+ACME
+10
+20
+2
+S
+1
+R002
+Aceite
+ACME
+15
+30
+3
+S
+1
+R003
+Bujia
+NGK
+8
+40
+4
+S
+1
+R004
+Pastillas
+Brembo
+25
+50
+5
+S
+0
+0
+S

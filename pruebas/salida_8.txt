@@ -1,0 +1,208 @@
+
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Autoservicio El Lago              ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: 
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+--- LISTAR ORDENES POR ESTADO ---
+1. ABIERTA
+2. CERRADA
+3. ANULADA
+Seleccione una opcion: 
+Se encontraron 2 orden(es) en estado ABIERTA:
+
+========================================
+         ORDEN DE SERVICIO #9
+========================================
+Estado     : ABIERTA
+Apertura   : 2026-11-10 | Cierre: N/A
+Vehiculo   : WXY33C - Kia Rio (65000 km)
+Mecanico   : Jose Perez (MOTOR)
+Falla      : Revision de correa de tiempo y afinacion
+----------------------------------------
+Codigo  Repuesto          Cant  P.Unit  Total   
+----------------------------------------
+COR-007 Correa de Distri  1     22.00   22.00   
+BUJ-006 Bujia Punta de I  4     5.00    20.00   
+----------------------------------------
+Mano de obra: $0.00
+TOTAL       : $42.00
+========================================
+
+========================================
+         ORDEN DE SERVICIO #10
+========================================
+Estado     : ABIERTA
+Apertura   : 2026-11-12 | Cierre: N/A
+Vehiculo   : ZAB44D - Mitsubishi Lancer (210000 km)
+Mecanico   : Carlos Mendoza (SUSPENSION)
+Falla      : Alineacion y reemplazo de rotulas
+----------------------------------------
+Codigo  Repuesto          Cant  P.Unit  Total   
+----------------------------------------
+ROT-012 Rotula de Direcc  2     16.50   33.00   
+----------------------------------------
+Mano de obra: $0.00
+TOTAL       : $33.00
+========================================
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+--- LISTAR ORDENES POR ESTADO ---
+1. ABIERTA
+2. CERRADA
+3. ANULADA
+Seleccione una opcion: 
+Se encontraron 2 orden(es) en estado ANULADA:
+
+========================================
+         ORDEN DE SERVICIO #7
+========================================
+Estado     : ANULADA
+Apertura   : 2026-11-01 | Cierre: N/A
+Vehiculo   : WXY33C - Kia Rio (65000 km)
+Mecanico   : Jose Perez (MOTOR)
+Falla      : Presupuesto cancelado por el cliente
+----------------------------------------
+Codigo  Repuesto          Cant  P.Unit  Total   
+----------------------------------------
+COR-007 Correa de Distri  1     22.00   22.00   
+TER-011 Termostato 82C    1     18.00   18.00   
+----------------------------------------
+Mano de obra: $0.00
+TOTAL       : $40.00
+========================================
+
+========================================
+         ORDEN DE SERVICIO #8
+========================================
+Estado     : ANULADA
+Apertura   : 2026-09-20 | Cierre: N/A
+Vehiculo   : ZAB44D - Mitsubishi Lancer (210000 km)
+Mecanico   : Luis Fuenmayor (ELECTRICIDAD) (BAJA)
+Falla      : Repuesto no compatible
+----------------------------------------
+Codigo  Repuesto          Cant  P.Unit  Total   
+----------------------------------------
+BOM-008 Bomba de Gasolin  1     65.00   65.00   
+----------------------------------------
+Mano de obra: $0.00
+TOTAL       : $65.00
+========================================
+
+=== ORDENES DE SERVICIO ===
+1. Abrir orden
+2. Agregar repuesto a orden
+3. Quitar repuesto de orden
+4. Cerrar orden
+5. Anular orden
+6. Ver detalle de orden
+7. Listar ordenes por estado
+0. Volver
+Seleccione opcion: 
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Autoservicio El Lago              ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: 
+=== MODULO DE REPORTES ===
+1. Historial de vehiculo por placa
+2. Repuestos mas utilizados (Top 10)
+3. Facturacion por mecanico
+0. Volver
+Seleccione una opcion: Ingrese la placa exacta del vehiculo: 
+--- HISTORIAL DEL VEHICULO: ABC12D ---
+Propietario: Pedro Ramirez | Toyota Corolla (2015)
+ - Orden #1 | Fecha: 2026-10-01 | Mecanico: Jose Perez | Estado: CERRADA | Total: $145.00
+Total Facturado (Ordenes CERRADAS): $145.00
+
+=== MODULO DE REPORTES ===
+1. Historial de vehiculo por placa
+2. Repuestos mas utilizados (Top 10)
+3. Facturacion por mecanico
+0. Volver
+Seleccione una opcion: 
+--- TOP 10: REPUESTOS MAS UTILIZADOS (ORDENES CERRADAS) ---
+Codigo      Nombre                   Unidades
+-----------------------------------------------
+ACE-001     Aceite Motor 20W50 Miner 8
+BUJ-006     Bujia Punta de Iridio    8
+FIL-002     Filtro de Aceite         3
+PAS-003     Pastillas de Freno Delan 3
+AMR-005     Amortiguador Delantero   3
+DIS-004     Disco de Freno Delantero 2
+REF-009     Refrigerante Verde Galon 2
+ROT-012     Rotula de Direccion      2
+BOM-008     Bomba de Gasolina Comple 1
+BAT-010     Bateria 800 Amp          1
+
+=== MODULO DE REPORTES ===
+1. Historial de vehiculo por placa
+2. Repuestos mas utilizados (Top 10)
+3. Facturacion por mecanico
+0. Volver
+Seleccione una opcion: 
+--- FACTURACION POR MECANICO ---
+╔══════════════════════╦═══════════╦═══════════╦═══════════╗
+║ Mecanico             ║  Ordenes  ║  M. obra  ║ Repuestos ║
+╠══════════════════════╬═══════════╬═══════════╬═══════════╣
+║ Jose Perez           ║         2 ║     80.00 ║    125.00 ║
+║ Ana Villalobos       ║         2 ║    115.00 ║    329.00 ║
+║ Luis Fuenmayor (BAJA)║         1 ║     50.00 ║    176.00 ║
+║ Carlos Mendoza       ║         1 ║     35.00 ║     55.00 ║
+╚══════════════════════╩═══════════╩═══════════╩═══════════╝
+
+=== MODULO DE REPORTES ===
+1. Historial de vehiculo por placa
+2. Repuestos mas utilizados (Top 10)
+3. Facturacion por mecanico
+0. Volver
+Seleccione una opcion: 
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Autoservicio El Lago              ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: ¿Esta seguro de salir del sistema? (S/N): 
+Saliendo del sistema... ¡Hasta luego!

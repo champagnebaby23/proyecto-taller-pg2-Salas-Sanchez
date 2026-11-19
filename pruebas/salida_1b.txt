@@ -1,0 +1,181 @@
+
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: 
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+5. Actualizar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+--- LISTADO GENERAL DE VEHICULOS (ACTIVOS) ---
+----------------------------------------
+ID          : 1
+Placa       : ABC101
+Vehiculo    : Toyota Corolla (2020)
+Kilometraje : 100 km
+Propietario : Ana Perez (Cedula: V-100)
+Telefono    : 0414-1000001
+----------------------------------------
+----------------------------------------
+ID          : 2
+Placa       : XYZ202
+Vehiculo    : Ford Focus (2019)
+Kilometraje : 200 km
+Propietario : Luis Rojas (Cedula: V-200)
+Telefono    : 0414-1000002
+----------------------------------------
+----------------------------------------
+ID          : 3
+Placa       : MNO303
+Vehiculo    : Chevrolet Cruze (2018)
+Kilometraje : 300 km
+Propietario : Maria Diaz (Cedula: V-300)
+Telefono    : 0414-1000003
+----------------------------------------
+Total mostrados: 3
+
+=== GESTION DE VEHICULOS ===
+1. Registrar vehiculo
+2. Buscar vehiculo
+3. Listar vehiculos
+4. Eliminar vehiculo
+5. Actualizar vehiculo
+0. Volver al menu principal
+Seleccione una opcion: 
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: 
+=== GESTION DE MECANICOS ===
+1. Registrar mecanico
+2. Buscar mecanico por ID
+3. Buscar mecanico por cedula
+4. Listar mecanicos
+5. Dar de baja mecanico
+0. Volver
+Seleccione opcion: 
+--- LISTADO DE MECANICOS (ACTIVOS Y DADOS DE BAJA) ---
+----------------------------------------
+ID           : 1
+Nombre       : Jose Perez
+Cedula       : V-101
+Especialidad : MOTOR
+Fecha Ingreso: 2020-01-01
+----------------------------------------
+Ordenes Abiertas: 0
+----------------------------------------
+ID           : 2
+Nombre       : Ana Villalobos
+Cedula       : V-102
+Especialidad : FRENOS
+Fecha Ingreso: 2021-02-02
+----------------------------------------
+Ordenes Abiertas: 0
+Total listados: 2
+
+=== GESTION DE MECANICOS ===
+1. Registrar mecanico
+2. Buscar mecanico por ID
+3. Buscar mecanico por cedula
+4. Listar mecanicos
+5. Dar de baja mecanico
+0. Volver
+Seleccione opcion: 
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: 
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Buscar repuesto
+5. Listar repuestos
+6. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+--- INVENTARIO DE REPUESTOS (SOLO ACTIVOS) ---
+----------------------------------------
+ID           : 1
+Codigo       : R001
+Nombre       : Filtro (ACME)
+Precio       : $10.00
+Stock        : 20 (Minimo: 2)
+----------------------------------------
+----------------------------------------
+ID           : 2
+Codigo       : R002
+Nombre       : Aceite (ACME)
+Precio       : $15.00
+Stock        : 30 (Minimo: 3)
+----------------------------------------
+----------------------------------------
+ID           : 3
+Codigo       : R003
+Nombre       : Bujia (NGK)
+Precio       : $8.00
+Stock        : 40 (Minimo: 4)
+----------------------------------------
+----------------------------------------
+ID           : 4
+Codigo       : R004
+Nombre       : Pastillas (Brembo)
+Precio       : $25.00
+Stock        : 50 (Minimo: 5)
+----------------------------------------
+Total listados: 4
+
+=== INVENTARIO DE REPUESTOS ===
+1. Registrar repuesto
+2. Registrar entrada de mercancia
+3. Cambiar precio
+4. Buscar repuesto
+5. Listar repuestos
+6. Eliminar repuesto
+0. Volver
+Seleccione opcion: 
+╔═══════════════════════════════════════════╗
+║       SISTEMA DE GESTION DE TALLER        ║
+║ Taller: Taller de Pruebas                 ║
+╠═══════════════════════════════════════════╣
+║ 1. Gestion de Vehiculos                   ║
+║ 2. Gestion de Mecanicos                   ║
+║ 3. Inventario de Repuestos                ║
+║ 4. Ordenes de Servicio                    ║
+║ 5. Reportes                               ║
+║ 6. Mantenimiento                          ║
+║ 0. Salir                                  ║
+╚═══════════════════════════════════════════╝
+Seleccione una opcion: ¿Esta seguro de salir del sistema? (S/N): 
+Saliendo del sistema... ¡Hasta luego!
