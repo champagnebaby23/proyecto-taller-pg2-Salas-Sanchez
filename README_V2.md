@@ -27,8 +27,6 @@ Las estructuras persistidas usan arreglos `char` de capacidad fija, tipos numeri
 | `TopRepuesto` | 124 |
 | `FilaFacturacionMecanico` | 116 |
 
-Estos valores dependen del compilador, la arquitectura y la ABI; deben comprobarse en el entorno de entrega. `taller.bin` contiene un unico `Taller`, sin header. Los otros cuatro archivos comienzan con `ArchivoHeader`.
-
 Los registros se agregan al final y nunca se compactan ni reordenan. Por eso el ID coincide con el indice fisico mas uno:
 
 ```text
@@ -152,8 +150,6 @@ Las validaciones se ejecutan antes de escribir. Las operaciones compuestas tambi
 - **Anular orden:** se devuelven las cantidades, luego se cambia el estado. Si una escritura detecta un fallo, se intenta revertir las anteriores. Una interrupcion abrupta durante la devolucion requiere verificar y reconciliar los archivos antes de reintentar, para no devolver dos veces las mismas unidades.
 - **Abrir orden:** se actualiza el kilometraje y luego se crea la orden; si la creacion detecta un fallo, se intenta restaurar el kilometraje.
 
-`fstream` no ofrece atomicidad entre archivos. Una recuperacion automatica ante apagones requeriria un journal/transaccion persistente, fuera del formato solicitado. En agregar, el orden implementado (stock y luego detalle) puede dejar una disminucion de stock sin una linea que la explique; guardar primero el detalle dejaria evidencia directa para detectar el stock no descontado. Despues de una interrupcion se debe ejecutar la verificacion de integridad antes de continuar.
-
 ## Preguntas de analisis
 
 1. **Persistir un `DetalleOrden*` del Proyecto 1:** al escribirlo se guardaria la direccion de memoria, no los objetos apuntados. Al cerrar el programa esa direccion deja de ser valida; al leerla en otra ejecucion no se recuperan las lineas y podria apuntar a memoria no asignada.
@@ -175,10 +171,3 @@ La carpeta `pruebas/` contiene un par `entrada_N*.txt` / `salida_N*.txt` para ca
 | 7 | `7a`, `7b` | Restauracion parcial de vehiculos y deteccion de referencia rota |
 | 8 | `8` | Tres reportes; se listan estados para comprobar que abiertas/anuladas no se facturan |
 
-`pruebas/regresiones.cpp` verifica tambien el limite de 15 lineas, el precio historico, el cierre con fecha actual, la anulacion y devolucion de stock, el backup y la integridad. Para compilar, ejecutar los ocho casos en directorios aislados y regenerar las salidas capturadas:
-
-```sh
-./pruebas/ejecutar_casos.sh
-```
-
-El caso 7 restaura automaticamente `vehiculos.bin` desde el backup creado durante `7a`; el caso 8 trabaja sobre una copia de la carpeta `datos/` pre-poblada del proyecto. El script no modifica los datos de entrega.
