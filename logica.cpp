@@ -11,7 +11,7 @@
 using namespace std;
 
 // ==================================================
-// FUNCIONES AUXILIARES DE CADENAS (NO PERSISTENTES)
+// FUNCIONES AUXILIARES DE CADENAS
 // ==================================================
 
 void aMinusculas(const char* origen, char* destino, size_t tamDestino) {
@@ -103,6 +103,7 @@ bool fechaValidaISO(const char* fecha) {
 bool inicializarSistemaArchivos(string &motivoFallo) {
     if (!asegurarDirectorioDatos(motivoFallo)) return false;
 
+    // Declara los archivos y el tamano de sus registros
     const struct {
         const char* ruta;
         size_t tamanoRegistro;
@@ -112,6 +113,8 @@ bool inicializarSistemaArchivos(string &motivoFallo) {
         {"datos/repuestos.bin", sizeof(Repuesto)},
         {"datos/ordenes.bin", sizeof(OrdenServicio)}
     };
+
+    // Valida cada archivo
     for (size_t i = 0; i < sizeof(archivos) / sizeof(archivos[0]); i++) {
         if (!inicializarArchivo(archivos[i].ruta, archivos[i].tamanoRegistro)) {
             motivoFallo = "No se pudo inicializar " + string(archivos[i].ruta) +
@@ -122,13 +125,14 @@ bool inicializarSistemaArchivos(string &motivoFallo) {
     return true;
 }
 
+
 bool cargarTaller(Taller &t, bool &primeraEjecucion, string &motivoFallo) {
     bool noExiste = false;
     primeraEjecucion = false;
     if (cargarTallerArchivo(t, noExiste)) {
         if (!cadenaTerminada(t.nombre) || !cadenaTerminada(t.rif) ||
             !cadenaTerminada(t.direccion) || !cadenaTerminada(t.telefono)) {
-            motivoFallo = "datos/taller.bin contiene una cadena sin terminador.";
+            motivoFallo = "datos/taller.bin contiene una cadena sin terminador."; // terminador: '\0'
             return false;
         }
         return true;
@@ -136,7 +140,7 @@ bool cargarTaller(Taller &t, bool &primeraEjecucion, string &motivoFallo) {
     if (noExiste) {
         primeraEjecucion = true;
         t = {};
-        return true;
+        return true; // Asi main sabe que debe pedir la informacion inicial
     }
     motivoFallo = "taller.bin existe, pero no se pudo leer un registro Taller completo.";
     return false;
@@ -173,7 +177,7 @@ bool agregarVehiculo(Vehiculo &datos, string &motivoFallo) {
         return false;
     }
 
-    // Placa unica entre los vehículos activos
+    // Placa unica entre los vehiculos activos
     Vehiculo existente;
     string motivoBusqueda;
     if (buscarVehiculoPorPlaca(datos.placa, existente, motivoBusqueda)) {
@@ -201,7 +205,7 @@ bool buscarVehiculoPorID(int id, Vehiculo &resultado, bool &fueEliminado, long &
 
     if (resultado.eliminado) {
         fueEliminado = true;
-        return false; // Según sección 11: La lógica retorna false y reporta si fue eliminado
+        return false; // La lógica retorna false y reporta si fue eliminado
     }
 
     return true;
@@ -390,7 +394,7 @@ bool eliminarVehiculo(int id, string &motivoFallo) {
 }
 
 // ====================
-// MÓDULO DE MECÁNICOS
+// MODULO DE MECANICOS
 // ====================
 
 bool especialidadValida(const char* esp) {
@@ -416,7 +420,7 @@ bool registrarMecanico(Mecanico &datos, string &motivoFallo) {
         return false;
     }
 
-    // Regla 5.3: Cédula única
+    // Cedula única
     ArchivoHeader hMec;
     if (!leerHeader("datos/mecanicos.bin", hMec)) {
         motivoFallo = "No se pudo leer el header de mecanicos.bin.";
@@ -453,7 +457,7 @@ bool buscarMecanicoPorID(int id, Mecanico &resultado, bool &fueEliminado, long *
 
     if (resultado.eliminado) {
         fueEliminado = true;
-        return false; // La logica retorna false para mecánicos inactivos en búsquedas estándar
+        return false; // La logica retorna false para mecanicos inactivos en busquedas estandar
     }
     return true;
 }
@@ -532,7 +536,7 @@ bool listarMecanicos(Mecanico resultados[], int &cantidad, bool &hayMas,
         return false;
     }
 
-    // Regla 5.3: Activos y dados de baja (marcados como tales)
+    // Activos y dados de baja
     for (int i = 1; i <= h.cantidadRegistros; i++) {
         Mecanico m;
         if (!leerMecanicoPorID(i, m)) {
@@ -562,7 +566,7 @@ bool eliminarMecanico(int id, string &motivoFallo) {
         return false;
     }
 
-    // Regla 5.3: Rechazado si el mecánico tiene órdenes ABIERTAS
+    // Rechazado si el mecánico tiene ordenes ABIERTAS
     int abiertas = 0;
     if (!contarOrdenesAbiertasMecanico(id, abiertas, motivoFallo)) {
         return false;
@@ -601,7 +605,7 @@ bool registrarRepuesto(Repuesto &datos, string &motivoFallo) {
         return false;
     }
 
-    // Código único entre los repuestos activos
+    // Codigo unico entre los repuestos activos
     Repuesto existente;
     string motivoBusqueda;
     if (buscarRepuestoPorCodigo(datos.codigo, existente, motivoBusqueda)) {
@@ -830,7 +834,7 @@ bool eliminarRepuesto(int id, string &motivoFallo) {
 }
 
 // ==============================
-// MÓDULO DE ÓRDENES DE SERVICIO
+// MODULO DE ORDENES DE SERVICIO
 // ==============================
 
 bool abrirOrdenServicio(int idVehiculo, int idMecanico, const char* fechaApertura,
@@ -1548,9 +1552,12 @@ bool crearBackup(string &rutaGenerada, string &motivoFallo) {
 }
 
 void verificarIntegridadSistema(vector<string> &errores, int contadores[]) {
+
+    // Prepara los resultados
     errores.clear();
     for (int i = 0; i < 4; i++) contadores[i] = 0;
 
+    // Comprueba datos del taller
     Taller taller = {};
     bool tallerNoExiste = false;
     if (!cargarTallerArchivo(taller, tallerNoExiste)) {
@@ -1562,13 +1569,23 @@ void verificarIntegridadSistema(vector<string> &errores, int contadores[]) {
         errores.push_back("ROTO: datos/taller.bin contiene una cadena sin terminador.");
     }
 
+    // Declara un header y un conteo fisico para cada entidad
     ArchivoHeader hVeh = {};
     ArchivoHeader hMec = {};
     ArchivoHeader hRep = {};
     ArchivoHeader hOrd = {};
     int realesVeh = 0, realesMec = 0, realesRep = 0, realesOrd = 0;
 
+    // Define lambda local "inspeccionar"
+    // El [&] significa que puede acceder por referencia a variables del ambio exterior como errores
     auto inspeccionar = [&](const char* ruta, size_t tamRegistro, ArchivoHeader &h, int &reales) {
+
+        //Para cada archivo:
+        // Lee el header. Si falla, agrega un error y devuelve false
+        // Inspecciona los bytes para contar registros completos y detectar un registro parcial, si la inspección falla, agrega el motivo y devuelve false
+        // Compara los registros fisicos con h.cantidadRegistros
+        // Verifica los valores del header: total no negativo, proximoID igual al total más uno, activos entre cero y el total, y versión 1
+        // Si pudo leer e inspeccionar el archivo, devuelve true, aunque haya encontrado inconsistencias de conteo o metadata
         string motivoFallo;
         bool registroIncompleto = false;
         if (!leerHeader(ruta, h)) {
@@ -1596,6 +1613,7 @@ void verificarIntegridadSistema(vector<string> &errores, int contadores[]) {
         return true;
     };
 
+    // Las cuatro llamadas ejecutan esa comprobacion para las 4 entidades
     bool vehiculosDisponibles = inspeccionar("datos/vehiculos.bin", sizeof(Vehiculo), hVeh, realesVeh);
     bool mecanicosDisponibles = inspeccionar("datos/mecanicos.bin", sizeof(Mecanico), hMec, realesMec);
     bool repuestosDisponibles = inspeccionar("datos/repuestos.bin", sizeof(Repuesto), hRep, realesRep);

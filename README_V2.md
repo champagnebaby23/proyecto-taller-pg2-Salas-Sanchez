@@ -5,15 +5,14 @@
 Desde la carpeta del proyecto:
 
 ```sh
-g++ -std=c++11 -Wall -Wextra -pedantic main.cpp logica.cpp persistencia.cpp -o taller
-./taller
+g++ main.cpp logica.cpp persistencia.cpp -o main
 ```
 
 Los archivos de entidades se guardan en `datos/`. La primera ejecucion solicita los datos del taller; las siguientes los leen desde `datos/taller.bin`.
 
 ## Formato binario y acceso aleatorio
 
-Las estructuras persistidas usan arreglos `char` de capacidad fija, tipos numericos, `bool` y `time_t`; no contienen `std::string` ni punteros. En el entorno de compilacion probado (Linux, ABI de 64 bits), `sizeof` reporta:
+Las estructuras persistidas usan arreglos `char` de capacidad fija, tipos numericos, `bool` y `time_t`; no contienen `std::string` ni punteros. En el entorno de compilacion probado (Linux, de 64 bits), `sizeof` reporta:
 
 | Estructura | Bytes |
 |---|---:|
@@ -36,7 +35,7 @@ offset = sizeof(ArchivoHeader) + indiceFisico * sizeof(Estructura)
 
 Una eliminacion es logica y no crea huecos. La relacion dejaria de ser valida si se borraran registros fisicamente, se reordenaran o se insertaran registros con IDs no consecutivos.
 
-## Diseno del detalle de orden
+## Diseño del detalle de orden
 
 `OrdenServicio` contiene `DetalleOrden detalles[15]` y `numDetalles`. Es un arreglo fijo: todas las ordenes ocupan `sizeof(OrdenServicio) == 464` bytes, tengan 1 o 15 lineas. No se agrega un archivo de detalles. Cada linea conserva ID del repuesto, cantidad y precio unitario historico.
 

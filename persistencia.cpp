@@ -21,7 +21,7 @@
 
 using namespace std;
 
-// Rutas fijas según especificación (Sección 1)
+// Rutas fijas según especificacion
 static const char* RUTA_TALLER     = "datos/taller.bin";
 static const char* RUTA_VEHICULOS  = "datos/vehiculos.bin";
 static const char* RUTA_MECANICOS  = "datos/mecanicos.bin";
@@ -119,6 +119,8 @@ static bool restaurarAppend(const char* ruta, streamoff tamanoOriginal,
 template <typename Registro>
 static bool guardarRegistroCrudo(const char* ruta, Registro &registro,
                                  string &motivoFallo) {
+    
+    // Limpia mensaje de error y valida el header
     motivoFallo.clear();
     ArchivoHeader headerOriginal = {};
     if (!leerHeader(ruta, headerOriginal) || !headerValido(headerOriginal) ||
@@ -128,9 +130,13 @@ static bool guardarRegistroCrudo(const char* ruta, Registro &registro,
         return false;
     }
 
+    // Comprueba el contenido fisico del archivo
     int registrosFisicos = 0;
     bool registroIncompleto = false;
     string motivoInspeccion;
+
+    // Verifica que los bytes del archivo correspondan a registros completos del tipo esperado y que su cantidad
+    // concuerde con el header, si no coinciden, no agrega nada, el archivo podria estar incompleto o inconsistente
     if (!inspeccionarArchivoEntidad(ruta, sizeof(Registro), registrosFisicos,
                                    registroIncompleto, motivoInspeccion) ||
         registroIncompleto ||
@@ -140,17 +146,21 @@ static bool guardarRegistroCrudo(const char* ruta, Registro &registro,
         return false;
     }
 
+    // Guarda tama;o previo para una posible reversion
     streamoff tamanoOriginal =
         static_cast<streamoff>(sizeof(ArchivoHeader)) +
         static_cast<streamoff>(registrosFisicos) *
-            static_cast<streamoff>(sizeof(Registro));
+            static_cast<streamoff>(sizeof(Registro)); // Calcula el tama;o que el archivo tiene antes del nuevo registro
 
+    // Asigna ID y fechas al nuevo registro
     time_t ahora = time(nullptr);
     registro.id = headerOriginal.proximoID;
     registro.eliminado = false;
     registro.fechaCreacion = ahora;
     registro.fechaUltimaModificacion = ahora;
 
+    // Escribe representacion binaria, fuerza descarga de datos pendientes y comprueba errores antes
+    // y despues de cerrar el archivo
     ofstream archivo(ruta, ios::out | ios::binary | ios::app);
     if (!archivo.is_open()) {
         motivoFallo = "No se pudo abrir " + string(ruta) + " para agregar un registro.";
@@ -161,6 +171,8 @@ static bool guardarRegistroCrudo(const char* ruta, Registro &registro,
     bool registroEscrito = archivo.good();
     archivo.close();
     registroEscrito = registroEscrito && !archivo.fail();
+
+    // Si fallo la escritura:
     if (!registroEscrito) {
         bool restaurado = restaurarAppend(ruta, tamanoOriginal, headerOriginal);
         motivoFallo = restaurado
@@ -169,6 +181,7 @@ static bool guardarRegistroCrudo(const char* ruta, Registro &registro,
         return false;
     }
 
+    // Si el registro se escribio, se prepara el nuevo header
     ArchivoHeader headerNuevo = headerOriginal;
     headerNuevo.cantidadRegistros++;
     headerNuevo.registrosActivos++;
@@ -183,11 +196,14 @@ static bool guardarRegistroCrudo(const char* ruta, Registro &registro,
     return true;
 }
 
+
 template <typename Registro>
 static bool escribirRegistroEnPosicion(const char* ruta, int id,
                                        const Registro &registro) {
     fstream archivo(ruta, ios::in | ios::out | ios::binary);
     if (!archivo.is_open()) return false;
+    
+    // Calcula la posicion del registro con calcularOffset
     archivo.seekp(calcularOffset(id, sizeof(Registro)), ios::beg);
     archivo.write(reinterpret_cast<const char*>(&registro), sizeof(Registro));
     archivo.flush();
@@ -201,6 +217,8 @@ static bool marcarRegistroEliminado(const char* ruta, int id,
                                    string &motivoFallo) {
     motivoFallo.clear();
     ArchivoHeader headerOriginal = {};
+
+    // Lee y valida el header, comprueba que el ID exista y que hayan registros activos
     if (!leerHeader(ruta, headerOriginal) || !headerValido(headerOriginal) ||
         id < 1 || id > headerOriginal.cantidadRegistros ||
         headerOriginal.registrosActivos < 1) {
@@ -211,6 +229,8 @@ static bool marcarRegistroEliminado(const char* ruta, int id,
     int registrosFisicos = 0;
     bool registroIncompleto = false;
     string motivoInspeccion;
+    
+    // VVerifica que la cantidad de registros completos coincida con el header
     if (!inspeccionarArchivoEntidad(ruta, sizeof(Registro), registrosFisicos,
                                    registroIncompleto, motivoInspeccion) ||
         registroIncompleto ||
@@ -220,6 +240,7 @@ static bool marcarRegistroEliminado(const char* ruta, int id,
         return false;
     }
 
+    // Lee el registro por su posicion y verifica que el ID almacenado coincida con el solicitado
     ifstream entrada(ruta, ios::binary);
     Registro original = {};
     if (!entrada.is_open()) {
@@ -234,11 +255,14 @@ static bool marcarRegistroEliminado(const char* ruta, int id,
         motivoFallo = "No se pudo validar el registro ID #" + to_string(id) + ".";
         return false;
     }
+
+    // Si ya estaba eliminado, rechaza la operacion
     if (original.eliminado) {
         motivoFallo = "El registro ya estaba eliminado.";
         return false;
     }
 
+    // Crea una copia, marca eliminado como true y actualiza la fecha de modificacion
     Registro actualizado = original;
     actualizado.eliminado = true;
     actualizado.fechaUltimaModificacion = time(nullptr);
@@ -251,6 +275,7 @@ static bool marcarRegistroEliminado(const char* ruta, int id,
     }
 
     ArchivoHeader headerNuevo = headerOriginal;
+    // Reduce registrosActivos en el header
     headerNuevo.registrosActivos--;
     if (!actualizarHeader(ruta, headerNuevo)) {
         bool headerRestaurado = actualizarHeader(ruta, headerOriginal);
@@ -264,7 +289,7 @@ static bool marcarRegistroEliminado(const char* ruta, int id,
 }
 
 // ============================================================
-// OPERACIONES SOBRE EL HEADER Y CONTROL DE ARCHIVOS (SECCIÓN 4.1)
+// OPERACIONES SOBRE EL HEADER Y CONTROL DE ARCHIVOS    
 // ============================================================
 
 bool asegurarDirectorioDatos(string &motivoFallo) {
@@ -282,6 +307,7 @@ bool asegurarDirectorioDatos(string &motivoFallo) {
     return true;
 }
 
+// Si el archivo no existe, lo crea con un header inicial
 bool inicializarArchivo(const char* ruta, size_t tamanoRegistro) {
     ifstream archivo(ruta, ios::in | ios::binary);
     if (!archivo.is_open()) {
@@ -304,6 +330,7 @@ bool inicializarArchivo(const char* ruta, size_t tamanoRegistro) {
         return exito && !nuevo.fail();
     }
 
+    // Si existe, valida el header
     ArchivoHeader h = {};
     archivo.read(reinterpret_cast<char*>(&h), sizeof(ArchivoHeader));
     bool valido = archivo.good() && headerValido(h);
@@ -346,6 +373,8 @@ bool inspeccionarArchivoEntidad(const char* ruta, size_t tamanoRegistro,
         motivoFallo = "No se pudo abrir " + string(ruta) + ".";
         return false;
     }
+
+    // Mide el archivo para saber el tamano del header
     archivo.seekg(0, ios::end);
     streamoff tamArchivo = archivo.tellg();
     if (!archivo.good() || tamArchivo < static_cast<streamoff>(sizeof(ArchivoHeader))) {
@@ -353,6 +382,8 @@ bool inspeccionarArchivoEntidad(const char* ruta, size_t tamanoRegistro,
         return false;
     }
 
+    // Resta el tamano del header y divide los bytes restantes por el tamano de cada registro
+    // Esa divison da cuantos registros completos hay, el residuo indica si quedo un registro incompleto
     streamoff bytesRegistros = tamArchivo - static_cast<streamoff>(sizeof(ArchivoHeader));
     streamoff cantidad = bytesRegistros / static_cast<streamoff>(tamanoRegistro);
     if (cantidad > numeric_limits<int>::max()) {
@@ -364,6 +395,7 @@ bool inspeccionarArchivoEntidad(const char* ruta, size_t tamanoRegistro,
     return true;
 }
 
+// Abre el archibo para lectura y escritura, vuelve al principio y sobreescribe el header
 bool actualizarHeader(const char* ruta, const ArchivoHeader &header) {
     fstream archivo(ruta, ios::in | ios::out | ios::binary);
     if (!archivo.is_open()) {
@@ -385,10 +417,13 @@ long calcularOffset(int id, size_t tamanoRegistro) {
 // PERSISTENCIA DE TALLER
 // =========================
 
+// Intenta leer datos/taller.bin, lee la estructura completa y verifica que el archivo mida exactamente la estructura
 bool cargarTallerArchivo(Taller &t, bool &noExiste) {
     noExiste = false;
     ifstream archivo(RUTA_TALLER, ios::binary);
     if (!archivo.is_open()) {
+
+        // El parametro no existe permite distinguir en "no se creo" y "existe, pero no se pudo leer correctamente"
         noExiste = !archivoExiste(RUTA_TALLER) && errno == ENOENT;
         return false;
     }
@@ -402,6 +437,9 @@ bool cargarTallerArchivo(Taller &t, bool &noExiste) {
     return exito;
 }
 
+// Esta funcion trabaja con una copia del taller, pone la fella de creacion si aun no existe y actualiza la fecha de 
+// modificacion, luego escribe la estructura desde el inicio del archivo usando ios::trunc para reemplazar su contenido
+// anterior
 bool guardarTallerArchivo(const Taller &t) {
     Taller copia = t;
     time_t ahora = time(nullptr);

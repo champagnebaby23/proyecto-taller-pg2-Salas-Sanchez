@@ -9,26 +9,24 @@
 // ============================================================
 
 bool asegurarDirectorioDatos(std::string &motivoFallo);
-// Crea el header inicial o valida el existente; las entidades tambien validan
-// el conteo fisico cuando se proporciona tamanoRegistro.
+// Crea el header inicial o valida el existente, las entidades tambien validan
+// el conteo fisico cuando se proporciona tamanoRegistro
 bool inicializarArchivo(const char* ruta, size_t tamanoRegistro = 0);
 
-// Obtiene el header de un archivo sin leer ningun registro.
+// Obtiene el header de un archivo sin leer ningun registro
 bool leerHeader(const char* ruta, ArchivoHeader &header);
 bool inspeccionarArchivoEntidad(const char* ruta, size_t tamanoRegistro,
                                 int &registrosFisicos, bool &registroIncompleto,
                                 std::string &motivoFallo);
 
-// Sobrescribe unicamente el header (posición 0), sin tocar los registros.
+// Sobrescribe unicamente el header (posición 0), sin tocar los registros
 bool actualizarHeader(const char* ruta, const ArchivoHeader &header);
 
 // Calcula la posición en bytes del registro con el indice 
-// posición = sizeof(ArchivoHeader) + (id - 1) * sizeof(Estructura)
 long calcularOffset(int id, size_t tamanoRegistro);
 
 // ======================================
 // PERSISTENCIA DE TALLER 
-// taller.bin no tiene header
 // ======================================
 bool cargarTallerArchivo(Taller &t, bool &noExiste);
 bool guardarTallerArchivo(const Taller &t);
