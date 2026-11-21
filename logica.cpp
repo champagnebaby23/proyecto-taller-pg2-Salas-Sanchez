@@ -362,7 +362,7 @@ bool eliminarVehiculo(int id, string &motivoFallo) {
         return false;
     }
 
-    // Rechazado si el vehículo tiene ordenes en cualquier estado
+    // Las ordenes historicas se conservan; solo una orden abierta requiere el vehiculo activo.
     ArchivoHeader hOrd;
     if (!leerHeader("datos/ordenes.bin", hOrd)) {
         motivoFallo = "No se pudo verificar ordenes.bin; no se elimino el vehiculo.";
@@ -380,9 +380,9 @@ bool eliminarVehiculo(int id, string &motivoFallo) {
                           " contiene datos invalidos; no se elimino el vehiculo.";
             return false;
         }
-        if (o.idVehiculo == id) {
+        if (!o.eliminado && o.idVehiculo == id && strcmp(o.estado, "ABIERTA") == 0) {
             motivoFallo = "No se puede eliminar el vehiculo porque tiene registrada la orden #" +
-                          to_string(o.id) + " en estado " + o.estado + ".";
+                          to_string(o.id) + " en estado ABIERTA.";
             return false;
         }
     }

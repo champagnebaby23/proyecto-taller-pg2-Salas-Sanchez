@@ -138,6 +138,8 @@ void verificarIntegridadSistema(vector<string>& errores, int contadores[]);
 
 Los `bool` de negocio informan exito/fallo y, en operaciones modificadoras, `string& motivoFallo` explica la causa. Las busquedas por ID entregan una copia; las de vehiculo/mecanico/repuesto tambien distinguen un ID eliminado. Los listados entregan cantidad y `hayMas`. El historial de vehiculo pagina con `desdeOrden` y `hayMas` para recorrer todas las ordenes sin almacenarlas todas a la vez. El cierre calcula su propia fecha actual y ya no recibe una fecha de la interfaz.
 
+Las bajas logicas de vehiculos y mecanicos se permiten cuando solo tienen ordenes cerradas o anuladas, para conservar el historial; se bloquean mientras tengan ordenes abiertas.
+
 Las busquedas/listados devuelven copias en arreglos con una cantidad maxima fija y una bandera `hayMas`. La presentacion muestra el aviso cuando hay mas resultados.
 
 ## Escrituras compuestas y recuperacion
